@@ -24,7 +24,7 @@ export function GetIDForModule(name: string) {
 		allModulesText = moduleWrapperFuncs.map(a=>a.toString()).join("\n\n\n");
 		MakeGlobal({allModulesText});
 
-		// example in-bundle js: var _reactReduxFirebase = __webpack_require__(230);\n
+		// example in-bundle js: var _reactReduxFirebase = __webpack_require__(230);
 		let regex = /var ([a-zA-Z_]+) = __webpack_require__\(([0-9]+)\)/g;
 		let matches = [] as RegExpMatchArray[];
 		let match;

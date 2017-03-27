@@ -95,7 +95,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return a.toString();
 	        }).join("\n\n\n");
 	        MakeGlobal({ allModulesText: allModulesText });
-	        // example in-bundle js: var _reactReduxFirebase = __webpack_require__(230);\n
+	        // example in-bundle js: var _reactReduxFirebase = __webpack_require__(230);
 	        var regex = /var ([a-zA-Z_]+) = __webpack_require__\(([0-9]+)\)/g;
 	        var matches = [];
 	        var match = void 0;
