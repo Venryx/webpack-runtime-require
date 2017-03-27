@@ -35,7 +35,7 @@ export function GetIDForModule(name: string) {
 
 		for (let [_, varName, id] of matches) {
 			// these are examples of before and after the below regex's transformation:
-			// 		_react => react
+			// 		_reactReduxFirebase => react-redux-firebase
 			// 		_MyComponent => my-component
 			// 		_MyComponent_New => my-component-new
 			// 		_JSONHelper => jsonhelper
