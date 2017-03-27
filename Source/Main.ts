@@ -38,7 +38,7 @@ export function GetIDForModule(name: string) {
 			// 		_react => react
 			// 		_MyComponent => my-component
 			// 		_MyComponent_New => my-component-new
-			// 		_JSONHelper => json-helper
+			// 		_JSONHelper => jsonhelper
 			let moduleName = varName
 				.replace(/^_/g, "") // remove starting "_"
 				.replace(new RegExp( // convert chars where:

@@ -118,7 +118,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                // 		_react => react
 	                // 		_MyComponent => my-component
 	                // 		_MyComponent_New => my-component-new
-	                // 		_JSONHelper => json-helper
+	                // 		_JSONHelper => jsonhelper
 	                var moduleName = varName.replace(/^_/g, "") // remove starting "_"
 	                .replace(new RegExp( // convert chars where:
 	                "(?<!(^|[A-Z_]))" // is not preceded by a start-of-line, capital-letter, or underscore
