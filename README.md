@@ -14,7 +14,7 @@ It will then add a `Require()` function to the `window` object, for use in the c
 Then just use it, like so:
 ```
 let React = Require("react");
-console.assert(React.Component != null);
+console.log("Retrieved React.Component: " + React.Component);
 ```
 
 Alternately, you can require the `Require` function (oh, the meta!) from compile-time code and then use it directly:
