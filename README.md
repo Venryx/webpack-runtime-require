@@ -20,4 +20,5 @@ console.assert(React.Component != null);
 Alternately, you can require the `Require` function (oh, the meta!) from compile-time code and then use it directly:
 ```
 import {Require} from "react-runtime-require";
+Require("react");
 ```
