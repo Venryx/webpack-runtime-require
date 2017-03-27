@@ -69,7 +69,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
-	exports.GetModules = GetModules;
 	exports.GetIDForModule = GetIDForModule;
 	exports.Require = Require;
 	var g = window;
@@ -79,21 +78,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	}
 	var WebpackData = exports.WebpackData = undefined;
+	MakeGlobal({ WebpackData: WebpackData });
 	g.webpackJsonp([], { 0: function _(module, exports, __webpack_require__) {
 	        exports.WebpackData = WebpackData = __webpack_require__;
-	        g.Extend({ WebpackData: WebpackData });
 	    } }, [0]);
-	function GetModules() {
-	    return WebpackData.c.VValues();
-	}
-	MakeGlobal({ GetModules: GetModules });
 	var allModulesText = exports.allModulesText = undefined;
 	MakeGlobal({ allModulesText: allModulesText });
 	var moduleIDs = exports.moduleIDs = {};
 	MakeGlobal({ moduleIDs: moduleIDs });
 	function GetIDForModule(name) {
 	    if (allModulesText == null) {
-	        exports.allModulesText = allModulesText = WebpackData.m.VValues().Select(function (a) {
+	        var moduleWrapperFuncs = Object.keys(WebpackData.m).map(function (moduleID) {
+	            return WebpackData.m[moduleID];
+	        });
+	        exports.allModulesText = allModulesText = moduleWrapperFuncs.map(function (a) {
 	            return a.toString();
 	        }).join("\n\n\n");
 	        MakeGlobal({ allModulesText: allModulesText });
@@ -101,7 +99,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var regex = /var ([a-zA-Z_]+) = __webpack_require__\(([0-9]+)\)/g;
 	        var matches = [];
 	        var match = void 0;
-	        while (match = regex.exec(this)) {
+	        while (match = regex.exec(allModulesText)) {
 	            matches.push(match);
 	        }var _iteratorNormalCompletion = true;
 	        var _didIteratorError = false;

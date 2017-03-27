@@ -5,19 +5,14 @@ function MakeGlobal(props) {
 }
 
 export var WebpackData;
+MakeGlobal({WebpackData});
 g.webpackJsonp(
 	[],
 	{0: function(module, exports, __webpack_require__) {
 		WebpackData = __webpack_require__;
-		g.Extend({WebpackData});
 	}},
 	[0]
 );
-
-export function GetModules() {
-	return WebpackData.c.VValues();
-}
-MakeGlobal({GetModules});
 
 export var allModulesText: string;
 MakeGlobal({allModulesText});
@@ -25,14 +20,15 @@ export var moduleIDs = {} as {[key: string]: number};
 MakeGlobal({moduleIDs});
 export function GetIDForModule(name: string) {
 	if (allModulesText == null) {
-		allModulesText = WebpackData.m.VValues().Select(a=>a.toString()).join("\n\n\n");
+		let moduleWrapperFuncs = Object.keys(WebpackData.m).map(moduleID=>WebpackData.m[moduleID]);
+		allModulesText = moduleWrapperFuncs.map(a=>a.toString()).join("\n\n\n");
 		MakeGlobal({allModulesText});
 
 		// example in-bundle js: var _reactReduxFirebase = __webpack_require__(230);\n
 		let regex = /var ([a-zA-Z_]+) = __webpack_require__\(([0-9]+)\)/g;
 		let matches = [] as RegExpMatchArray[];
 		let match;
-		while (match = regex.exec(this))
+		while (match = regex.exec(allModulesText))
 			matches.push(match);
 
 		for (let [_, name, id] of matches) {
