@@ -24,17 +24,33 @@ export function GetIDForModule(name: string) {
 		allModulesText = moduleWrapperFuncs.map(a=>a.toString()).join("\n\n\n");
 		MakeGlobal({allModulesText});
 
-		// example in-bundle js: var _reactReduxFirebase = __webpack_require__(230);
+		// these are examples of before and after webpack's transformation: (which the regex below finds the var-name of)
+		// 		require("react-redux-firebase") => var _reactReduxFirebase = __webpack_require__(100);
+		// 		require("./Source/MyComponent") => var _MyComponent = __webpack_require__(200);
 		let regex = /var ([a-zA-Z_]+) = __webpack_require__\(([0-9]+)\)/g;
 		let matches = [] as RegExpMatchArray[];
 		let match;
 		while (match = regex.exec(allModulesText))
 			matches.push(match);
 
-		for (let [_, name, id] of matches) {
-			// this transforms the camel-case "_reactReduxFirebase" into "react-redux-firebase", since this is the most common format
-			let name_fixed = name.replace(/[^a-zA-Z]/g, "").replace(/[A-Z]/g, ch=>"-" + ch.toLowerCase());
-			moduleIDs[name_fixed] = parseInt(id);
+		for (let [_, varName, id] of matches) {
+			// these are examples of before and after the below regex's transformation:
+			// 		_react => react
+			// 		_MyComponent => my-component
+			// 		_MyComponent_New => my-component-new
+			// 		_JSONHelper => json-helper
+			let moduleName = varName
+				.replace(/^_/g, "") // remove starting "_"
+				.replace(new RegExp( // convert chars where:
+						  "(?<!(^|[A-Z_]))"	// is not preceded by a start-of-line, capital-letter, or underscore
+						+ "[A-Z]"			// is a capital-letter
+						+ "(?![A-Z_])",		// is not followed by a capital-letter or underscore
+					"g"),
+					ch=>"-" + ch // to: "-" + char
+				)
+				.replace(/_/g, "-") // convert all "_" to "-"
+				.toLowerCase(); // convert all letters to lowercase
+			moduleIDs[moduleName] = parseInt(id);
 		}
 	}
 	return moduleIDs[name];

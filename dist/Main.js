@@ -95,7 +95,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return a.toString();
 	        }).join("\n\n\n");
 	        MakeGlobal({ allModulesText: allModulesText });
-	        // example in-bundle js: var _reactReduxFirebase = __webpack_require__(230);
+	        // these are examples of before and after webpack's transformation: (which the regex below finds the var-name of)
+	        // 		require("react-redux-firebase") => var _reactReduxFirebase = __webpack_require__(100);
+	        // 		require("./Source/MyComponent") => var _MyComponent = __webpack_require__(200);
 	        var regex = /var ([a-zA-Z_]+) = __webpack_require__\(([0-9]+)\)/g;
 	        var matches = [];
 	        var match = void 0;
@@ -109,14 +111,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	            for (var _iterator = matches[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 	                var _step$value = _slicedToArray(_step.value, 3),
 	                    _ = _step$value[0],
-	                    _name = _step$value[1],
+	                    varName = _step$value[1],
 	                    id = _step$value[2];
 
-	                // this transforms the camel-case "_reactReduxFirebase" into "react-redux-firebase", since this is the most common format
-	                var name_fixed = _name.replace(/[^a-zA-Z]/g, "").replace(/[A-Z]/g, function (ch) {
-	                    return "-" + ch.toLowerCase();
-	                });
-	                moduleIDs[name_fixed] = parseInt(id);
+	                // these are examples of before and after the below regex's transformation:
+	                // 		_react => react
+	                // 		_MyComponent => my-component
+	                // 		_MyComponent_New => my-component-new
+	                // 		_JSONHelper => json-helper
+	                var moduleName = varName.replace(/^_/g, "") // remove starting "_"
+	                .replace(new RegExp( // convert chars where:
+	                "(?<!(^|[A-Z_]))" // is not preceded by a start-of-line, capital-letter, or underscore
+	                + "[A-Z]" // is a capital-letter
+	                + "(?![A-Z_])", // is not followed by a capital-letter or underscore
+	                "g"), function (ch) {
+	                    return "-" + ch;
+	                } // to: "-" + char
+	                ).replace(/_/g, "-") // convert all "_" to "-"
+	                .toLowerCase(); // convert all letters to lowercase
+	                moduleIDs[moduleName] = parseInt(id);
 	            }
 	        } catch (err) {
 	            _didIteratorError = true;
