@@ -121,11 +121,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	                // 		_JSONHelper => json-helper
 	                var moduleName = varName.replace(/^_/g, "") // remove starting "_"
 	                .replace(new RegExp( // convert chars where:
-	                "(?<!(^|_))" // is not preceded by a start-of-line or underscore
+	                "([^_])" // is preceded by a non-underscore char
 	                + "[A-Z]" // is a capital-letter
-	                + "(?![A-Z_])", // is not followed by a capital-letter or underscore
-	                "g"), function (ch) {
-	                    return "-" + ch;
+	                + "([^A-Z_])", // is followed by a non-capital-letter, non-underscore char
+	                "g"), function (str) {
+	                    return str[0] + "-" + str[1] + str[2];
 	                } // to: "-" + char
 	                ).replace(/_/g, "-") // convert all "_" to "-"
 	                .toLowerCase(); // convert all letters to lowercase

@@ -42,11 +42,11 @@ export function GetIDForModule(name: string) {
 			let moduleName = varName
 				.replace(/^_/g, "") // remove starting "_"
 				.replace(new RegExp( // convert chars where:
-						  "(?<!(^|_))"	// is not preceded by a start-of-line or underscore
-						+ "[A-Z]"			// is a capital-letter
-						+ "(?![A-Z_])",		// is not followed by a capital-letter or underscore
+						  "([^_])"		// is preceded by a non-underscore char
+						+ "[A-Z]"		// is a capital-letter
+						+ "([^A-Z_])",	// is followed by a non-capital-letter, non-underscore char
 					"g"),
-					ch=>"-" + ch // to: "-" + char
+					str=>str[0] + "-" + str[1] + str[2] // to: "-" + char
 				)
 				.replace(/_/g, "-") // convert all "_" to "-"
 				.toLowerCase(); // convert all letters to lowercase
