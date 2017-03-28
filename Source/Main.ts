@@ -14,7 +14,7 @@ if (webpackVersion == 1) {
 		{0: function(module, exports, __webpack_require__) {
 			webpackData_ = __webpack_require__;
 			//MakeGlobal({webpackData: webpackData_});
-			(window as any).webpackData = webpackData_;
+			g.webpackData = webpackData_;
 		}}
 	);
 } else {
@@ -22,7 +22,7 @@ if (webpackVersion == 1) {
 		{123456: function(module, exports, __webpack_require__) {
 			webpackData_ = __webpack_require__;
 			//MakeGlobal({webpackData: webpackData_});
-			(window as any).webpackData = webpackData_;
+			g.webpackData = webpackData_;
 		}},
 		[123456]
 	);

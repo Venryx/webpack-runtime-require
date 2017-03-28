@@ -84,13 +84,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    g.webpackJsonp([], { 0: function _(module, exports, __webpack_require__) {
 	            exports.webpackData_ = webpackData_ = __webpack_require__;
 	            //MakeGlobal({webpackData: webpackData_});
-	            window.webpackData = webpackData_;
+	            g.webpackData = webpackData_;
 	        } });
 	} else {
 	    g.webpackJsonp([], { 123456: function _(module, exports, __webpack_require__) {
 	            exports.webpackData_ = webpackData_ = __webpack_require__;
 	            //MakeGlobal({webpackData: webpackData_});
-	            window.webpackData = webpackData_;
+	            g.webpackData = webpackData_;
 	        } }, [123456]);
 	}
 	var allModulesText = exports.allModulesText = undefined;
