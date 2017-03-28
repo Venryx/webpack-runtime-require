@@ -4,23 +4,34 @@ function MakeGlobal(props) {
 		g[key] = props[key];
 }
 
-export var WebpackData;
-MakeGlobal({WebpackData});
-g.webpackJsonp(
-	[],
-	{0: function(module, exports, __webpack_require__) {
-		WebpackData = __webpack_require__;
-	}},
-	[0]
-);
+console.assert(g.webpackJsonp, `"window.webpackJsonp" must be set for webpack-runtime-require to function.`);
+
+export var webpackData_; // needs to have different name, so that window.webpackData can be set (Chrome seems to have a bug, when name is shared)
+let webpackVersion = g.webpackJsonp.length == 2 ? 1 : 2;
+if (webpackVersion == 1) {
+	g.webpackJsonp([],
+		{0: function(module, exports, __webpack_require__) {
+			webpackData_ = __webpack_require__;
+			//MakeGlobal({webpackData: webpackData_});
+			(window as any).webpackData = webpackData_;
+		}}
+	);
+} else {
+	g.webpackJsonp([],
+		{123456: function(module, exports, __webpack_require__) {
+			webpackData_ = __webpack_require__;
+			//MakeGlobal({webpackData: webpackData_});
+			(window as any).webpackData = webpackData_;
+		}},
+		[123456]
+	);
+}
 
 export var allModulesText: string;
-MakeGlobal({allModulesText});
 export var moduleIDs = {} as {[key: string]: number};
-MakeGlobal({moduleIDs});
 export function GetIDForModule(name: string) {
 	if (allModulesText == null) {
-		let moduleWrapperFuncs = Object.keys(WebpackData.m).map(moduleID=>WebpackData.m[moduleID]);
+		let moduleWrapperFuncs = Object.keys(webpackData_.m).map(moduleID=>webpackData_.m[moduleID]);
 		allModulesText = moduleWrapperFuncs.map(a=>a.toString()).join("\n\n\n");
 		MakeGlobal({allModulesText});
 
@@ -53,8 +64,9 @@ export function GetIDForModule(name: string) {
 			moduleIDs[moduleName] = parseInt(id);
 
 			// also add module onto Require() function, using "_" as the delimiter instead of "-" (so shows in console auto-complete)
-			Require[moduleName.replace(/-/g, "_")] = WebpackData.c[id] ? WebpackData.c[id].exports : "[failed to retrieve module exports]";
+			Require[moduleName.replace(/-/g, "_")] = webpackData_.c[id] ? webpackData_.c[id].exports : "[failed to retrieve module exports]";
 		}
+		MakeGlobal({moduleIDs});
 	}
 	return moduleIDs[name];
 }
@@ -62,6 +74,6 @@ MakeGlobal({GetIDForModule});
 
 export function Require(name: string) {
 	let id = GetIDForModule(name);
-	return WebpackData.c[id] ? WebpackData.c[id].exports : "[failed to retrieve module exports]";
+	return webpackData_.c[id] ? webpackData_.c[id].exports : "[failed to retrieve module exports]";
 }
 MakeGlobal({Require});

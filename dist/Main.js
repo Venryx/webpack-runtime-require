@@ -77,19 +77,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	        g[key] = props[key];
 	    }
 	}
-	var WebpackData = exports.WebpackData = undefined;
-	MakeGlobal({ WebpackData: WebpackData });
-	g.webpackJsonp([], { 0: function _(module, exports, __webpack_require__) {
-	        exports.WebpackData = WebpackData = __webpack_require__;
-	    } }, [0]);
+	console.assert(g.webpackJsonp, "\"window.webpackJsonp\" must be set for webpack-runtime-require to function.");
+	var webpackData_ = exports.webpackData_ = undefined; // needs to have different name, so that window.webpackData can be set (Chrome seems to have a bug, when name is shared)
+	var webpackVersion = g.webpackJsonp.length == 2 ? 1 : 2;
+	if (webpackVersion == 1) {
+	    g.webpackJsonp([], { 0: function _(module, exports, __webpack_require__) {
+	            exports.webpackData_ = webpackData_ = __webpack_require__;
+	            //MakeGlobal({webpackData: webpackData_});
+	            window.webpackData = webpackData_;
+	        } });
+	} else {
+	    g.webpackJsonp([], { 123456: function _(module, exports, __webpack_require__) {
+	            exports.webpackData_ = webpackData_ = __webpack_require__;
+	            //MakeGlobal({webpackData: webpackData_});
+	            window.webpackData = webpackData_;
+	        } }, [123456]);
+	}
 	var allModulesText = exports.allModulesText = undefined;
-	MakeGlobal({ allModulesText: allModulesText });
 	var moduleIDs = exports.moduleIDs = {};
-	MakeGlobal({ moduleIDs: moduleIDs });
 	function GetIDForModule(name) {
 	    if (allModulesText == null) {
-	        var moduleWrapperFuncs = Object.keys(WebpackData.m).map(function (moduleID) {
-	            return WebpackData.m[moduleID];
+	        var moduleWrapperFuncs = Object.keys(webpackData_.m).map(function (moduleID) {
+	            return webpackData_.m[moduleID];
 	        });
 	        exports.allModulesText = allModulesText = moduleWrapperFuncs.map(function (a) {
 	            return a.toString();
@@ -131,7 +140,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                .toLowerCase(); // convert all letters to lowercase
 	                moduleIDs[moduleName] = parseInt(id);
 	                // also add module onto Require() function, using "_" as the delimiter instead of "-" (so shows in console auto-complete)
-	                Require[moduleName.replace(/-/g, "_")] = WebpackData.c[id] ? WebpackData.c[id].exports : "[failed to retrieve module exports]";
+	                Require[moduleName.replace(/-/g, "_")] = webpackData_.c[id] ? webpackData_.c[id].exports : "[failed to retrieve module exports]";
 	            }
 	        } catch (err) {
 	            _didIteratorError = true;
@@ -147,13 +156,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }
 	            }
 	        }
+
+	        MakeGlobal({ moduleIDs: moduleIDs });
 	    }
 	    return moduleIDs[name];
 	}
 	MakeGlobal({ GetIDForModule: GetIDForModule });
 	function Require(name) {
 	    var id = GetIDForModule(name);
-	    return WebpackData.c[id] ? WebpackData.c[id].exports : "[failed to retrieve module exports]";
+	    return webpackData_.c[id] ? webpackData_.c[id].exports : "[failed to retrieve module exports]";
 	}
 	MakeGlobal({ Require: Require });
 
