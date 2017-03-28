@@ -1,6 +1,6 @@
 {
 	"name": "webpack-runtime-require",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"description": "Exposes a way to require module exports at runtime. (eg. in browser consoles)",
 	"main": "dist/Main.js",
 	"typings": "dist/Main.d.ts",

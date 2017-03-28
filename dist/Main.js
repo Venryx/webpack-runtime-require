@@ -118,10 +118,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	                // 		_reactReduxFirebase => react-redux-firebase
 	                // 		_MyComponent => my-component
 	                // 		_MyComponent_New => my-component-new
-	                // 		_JSONHelper => jsonhelper
+	                // 		_JSONHelper => json-helper
 	                var moduleName = varName.replace(/^_/g, "") // remove starting "_"
 	                .replace(new RegExp( // convert chars where:
-	                "(?<!(^|[A-Z_]))" // is not preceded by a start-of-line, capital-letter, or underscore
+	                "(?<!(^|_))" // is not preceded by a start-of-line or underscore
 	                + "[A-Z]" // is a capital-letter
 	                + "(?![A-Z_])", // is not followed by a capital-letter or underscore
 	                "g"), function (ch) {
