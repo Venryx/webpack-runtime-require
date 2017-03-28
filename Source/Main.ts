@@ -1,4 +1,5 @@
-var g = window as any;
+declare var window, global;
+var g = typeof window != "undefined" ? window : global;
 function MakeGlobal(props) {
 	for (let key in props)
 		g[key] = props[key];

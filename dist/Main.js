@@ -61,7 +61,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 1 */
 /***/ function(module, exports) {
 
-	"use strict";
+	/* WEBPACK VAR INJECTION */(function(global) {"use strict";
 
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
@@ -71,7 +71,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	exports.GetIDForModule = GetIDForModule;
 	exports.Require = Require;
-	var g = window;
+	var g = typeof window != "undefined" ? window : global;
 	function MakeGlobal(props) {
 	    for (var key in props) {
 	        g[key] = props[key];
@@ -167,6 +167,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return webpackData_.c[id] ? webpackData_.c[id].exports : "[failed to retrieve module exports]";
 	}
 	MakeGlobal({ Require: Require });
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ }
 /******/ ])
