@@ -95,6 +95,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	var allModulesText = exports.allModulesText = undefined;
 	var moduleIDs = exports.moduleIDs = {};
+	var moduleNames = exports.moduleNames = {};
 	function GetIDForModule(name) {
 	    if (allModulesText == null) {
 	        var moduleWrapperFuncs = Object.keys(webpackData_.m).map(function (moduleID) {
@@ -139,6 +140,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                ).replace(/_/g, "-") // convert all "_" to "-"
 	                .toLowerCase(); // convert all letters to lowercase
 	                moduleIDs[moduleName] = parseInt(id);
+	                moduleNames[parseInt(id)] = moduleName;
 	                // also add module onto Require() function, using "_" as the delimiter instead of "-" (so shows in console auto-complete)
 	                Require[moduleName.replace(/-/g, "_")] = webpackData_.c[id] ? webpackData_.c[id].exports : "[failed to retrieve module exports]";
 	            }
@@ -158,6 +160,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 
 	        MakeGlobal({ moduleIDs: moduleIDs });
+	        MakeGlobal({ moduleNames: moduleNames });
 	    }
 	    return moduleIDs[name];
 	}
