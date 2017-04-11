@@ -10,24 +10,22 @@ npm install --save webpack-runtime-require
 
 ### Usage
 
-First, require the module at least once.
+1) In your `webpack.config.js` file, set `webpackConfig.output.pathinfo` to `true`. (if you don't set this, it falls back to guessing the module's name from the variables where it's imported)
+
+2) Require the module at least once.
 ```
 import "webpack-runtime-require";
 ```
 
 It will then add a `Require()` function to the `window` object, for use in the console, or anywhere in your code.
 
-Then just use it, like so:
+3) Then just use it, like so:
 ```
-// For packages in "node_modules".
-
 let React = Require("react");
 console.log("Retrieved React.Component: " + React.Component);
 
-// For a file with the path "./Source/MyComponent", require string will be "my-component".
-// It's not ideal, but webpack strips data so we lose the original name. Use `Object.keys(moduleIDs)` for list of found module-names.
-
-let MyComponent = Require("my-component");
+// if path was "./Path/To/MyComponent", specify just the file-name
+let MyComponent = Require("MyComponent");
 console.log("Retrieved MyComponent: " + MyComponent);
 ```
 
@@ -36,3 +34,12 @@ Alternately, you can require the `Require` function (oh, the meta!) from compile
 import {Require} from "webpack-runtime-require";
 Require("react");
 ```
+
+### Additional usage
+
+If you're using the dev-tools Console, you can see autocomplete for the modules:
+
+1) Type and run: `Require()`
+2) Type: `Require.`
+
+You should then see all the modules in your app displayed in the autocomplete dropdown.
