@@ -40,9 +40,9 @@ export function ParseModuleData() {
 	let hasPathInfo = allModulesText.indexOf("__webpack_require__(/*! ") != -1;
 	// if has path-info embedded, just use that! (set using `webpackConfig.output.pathinfo: true`)
 	if (hasPathInfo) {
-		// these are examples of before and after webpack's transformation: (which the regex below finds the var-name of)
-		// 		require("react-redux-firebase") => var _reactReduxFirebase = __webpack_require__(100);
-		// 		require("./Source/MyComponent") => var _MyComponent = __webpack_require__(200);
+		// these are examples of before and after webpack's transformation: (which the regex below finds the path-comment of)
+		// 		require("react-redux-firebase") => var _reactReduxFirebase = __webpack_require__(/*! react-redux-firebase */ 100);
+		// 		require("./Source/MyComponent") => var _MyComponent = __webpack_require__(/*! ./Source/MyComponent */ 200);
 		let regex = /__webpack_require__\(\/\*! ((?:.(?!\*))+) \*\/ ([0-9]+)\)/g;
 		let matches = [] as RegExpMatchArray[];
 		let match;
