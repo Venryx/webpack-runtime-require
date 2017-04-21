@@ -105,6 +105,9 @@ export function GetIDForModule(name: string) {
 
 MakeGlobal({Require});
 export function Require(name: string) {
+	if (name === undefined)
+		return void ParseModuleData();
+
 	let id = GetIDForModule(name);
 	return webpackData_.c[id] ? webpackData_.c[id].exports : "[failed to retrieve module exports]";
 }

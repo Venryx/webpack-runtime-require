@@ -211,6 +211,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	MakeGlobal({ Require: Require });
 	function Require(name) {
+	    if (name === undefined) return void ParseModuleData();
 	    var id = GetIDForModule(name);
 	    return webpackData_.c[id] ? webpackData_.c[id].exports : "[failed to retrieve module exports]";
 	}
