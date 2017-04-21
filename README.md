@@ -10,16 +10,23 @@ npm install --save webpack-runtime-require
 
 ### Usage
 
-1) In your `webpack.config.js` file, set `webpackConfig.output.pathinfo` to `true`. (if you don't set this, it falls back to guessing the module's name from the variables where it's imported)
+1) Have webpack make the `webpackJsonp` function available on `window`. To do so, add the CommonsChunkPlugin to webpack's config:
+```
+// Stub, to make the webpackJsonp function available. (you don't actually have to have the plugin do anything)
+// If someone knows of a better way of exposing the function, let me know!
+config.plugins.push(new webpack.optimize.CommonsChunkPlugin({names: ["vendor"]}));
+```
 
-2) Require the module at least once.
+2) In your `webpack.config.js` file, set `config.output.pathinfo` to `true`. (if you don't set this, it falls back to guessing the module's name from the variables where it's imported)
+
+3) Require the module at least once.
 ```
 import "webpack-runtime-require";
 ```
 
 It will then add a `Require()` function to the `window` object, for use in the console, or anywhere in your code.
 
-3) Then just use it, like so:
+4) Then just use it, like so:
 ```
 let React = Require("react");
 console.log("Retrieved React.Component: " + React.Component);
