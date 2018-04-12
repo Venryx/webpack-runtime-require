@@ -22,7 +22,6 @@ C) Have webpack make the `webpackJsonp` function available on `window`. To do so
 config.plugins.push(new webpack.optimize.CommonsChunkPlugin({names: ["vendor"]}));
 ```
 
-
 2) In your `webpack.config.js` file, set `config.output.pathinfo` to `true`. (if you don't set this, it falls back to guessing the module's name from the variables where it's imported)
 
 3) Require the module at least once.
