@@ -12,8 +12,8 @@ module.exports = {
 		root: "Source",
 		extensions: ["", ".ts"],
 	},
-    module: {
-        loaders: [
+	module: {
+		loaders: [
 			{
 				test: /\.ts$/,
 				loader: "babel",
@@ -24,8 +24,8 @@ module.exports = {
 			},
 			{test: /\.ts$/, loader: "ts-loader"},
 		]
-    },
-    plugins: [
-        new webpack.NoErrorsPlugin(),
-    ]
+	},
+	plugins: [
+		new webpack.NoErrorsPlugin(),
+	]
 };

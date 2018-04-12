@@ -8,9 +8,9 @@ function MakeGlobal(props) {
 declare var __webpack_require__;
 //export var webpackData_; // needs to have different name, so that window.webpackData can be set (Chrome seems to have a bug, when name is shared)
 if (g.webpackData == null) {
-	/*if (typeof __webpack_require__ != "undefined") {
+	if (typeof __webpack_require__ != "undefined") {
 		g.webpackData = __webpack_require__;
-	} else*/ if (g.webpackJsonp) {
+	} else if (g.webpackJsonp) {
 		let webpackVersion = g.webpackJsonp.length == 2 ? 1 : 2;
 		if (webpackVersion == 1) {
 			g.webpackJsonp([],

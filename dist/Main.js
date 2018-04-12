@@ -59,7 +59,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 1 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {"use strict";
 
@@ -80,9 +80,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	//export var webpackData_; // needs to have different name, so that window.webpackData can be set (Chrome seems to have a bug, when name is shared)
 	if (g.webpackData == null) {
-	    /*if (typeof __webpack_require__ != "undefined") {
+	    if (true) {
 	        g.webpackData = __webpack_require__;
-	    } else*/if (g.webpackJsonp) {
+	    } else if (g.webpackJsonp) {
 	        var webpackVersion = g.webpackJsonp.length == 2 ? 1 : 2;
 	        if (webpackVersion == 1) {
 	            g.webpackJsonp([], { 0: function _(module, exports, __webpack_require__) {
