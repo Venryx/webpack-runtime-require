@@ -14,7 +14,7 @@ npm install --save webpack-runtime-require
 
 1) Add some way for the library to access the webpack data. You can do this in one of three ways.  
 A) Run the line `window.webpackData = __webpack_require__;` prior to importing the library.  
-B) Load the library's code as a raw TypeScript module (instead of the regular UMD dist output) by adding `module: "src/Main.ts"` to the library's package.json file. This gives it direct access to the `__webpack_require__` function, and with it, the attached module list/data.
+B) Load the library's code as a raw TypeScript module (instead of the regular UMD dist output) by adding `module: "src/Main.ts"` to the library's package.json file. This gives it direct access to the `__webpack_require__` function, and with it, the attached module list/data.  
 C) Have webpack make the `webpackJsonp` function available on `window`. To do so, add the CommonsChunkPlugin to webpack's config:
 ```
 // Stub, to make the webpackJsonp function available. (you don't actually have to have the plugin do anything)
