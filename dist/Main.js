@@ -78,9 +78,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        g[key] = props[key];
 	    }
 	}
-	//export var webpackData_; // needs to have different name, so that window.webpackData can be set (Chrome seems to have a bug, when name is shared)
+	// if webpack-data was not explicitly specified prior to library import, try to find the data
 	if (g.webpackData == null) {
-	    if (true) {
+	    // if included using `module: "src/Main.ts"`, we can access webpack-data directly
+	    if (typeof __webpack_require__ != "undefined" && __webpack_require__.m.length > 2) {
 	        g.webpackData = __webpack_require__;
 	    } else if (g.webpackJsonp) {
 	        var webpackVersion = g.webpackJsonp.length == 2 ? 1 : 2;

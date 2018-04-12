@@ -6,11 +6,14 @@ function MakeGlobal(props) {
 }
 
 declare var __webpack_require__;
-//export var webpackData_; // needs to have different name, so that window.webpackData can be set (Chrome seems to have a bug, when name is shared)
+// if webpack-data was not explicitly specified prior to library import, try to find the data
 if (g.webpackData == null) {
-	if (typeof __webpack_require__ != "undefined") {
+	// if included using `module: "src/Main.ts"`, we can access webpack-data directly
+	if (typeof __webpack_require__ != "undefined" && __webpack_require__.m.length > 2) {
 		g.webpackData = __webpack_require__;
-	} else if (g.webpackJsonp) {
+	}
+	// else, try to access it using webpackJsonp (the function only seems to be available if CommonsChunkPlugin is used)
+	else if (g.webpackJsonp) {
 		let webpackVersion = g.webpackJsonp.length == 2 ? 1 : 2;
 		if (webpackVersion == 1) {
 			g.webpackJsonp([],
@@ -26,7 +29,9 @@ if (g.webpackData == null) {
 				[123456]
 			);
 		}
-	} else {
+	}
+	// else, give up and throw error
+	else {
 		throw new Error(`window.webpackData must be set for webpack-runtime-require to function.${"\n"
 			}You can do so either by setting it directly (to __webpack_require__), or by making window.webpackJsonp available. (eg. using CommonsChunkPlugin)`);
 	}
