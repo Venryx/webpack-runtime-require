@@ -1,13 +1,13 @@
 var webpack = require("webpack");
 
 module.exports = {
-    entry: ["./Source/Main.ts"],
-    output: {
-        path: __dirname + "/dist",
-        publicPath: "http://localhost:8080/",
-        filename: "Main.js",
+	entry: ["./Source/Main.ts"],
+	output: {
+		path: __dirname + "/dist",
+		publicPath: "http://localhost:8080/",
+		filename: "Main.js",
 		libraryTarget: "umd",
-    },
+	},
 	resolve: {
 		root: "Source",
 		extensions: ["", ".ts"],

@@ -5,27 +5,31 @@ function MakeGlobal(props) {
 		g[key] = props[key];
 }
 
-console.assert(g.webpackJsonp, `"window.webpackJsonp" must be set for webpack-runtime-require to function.`);
-
-export var webpackData_; // needs to have different name, so that window.webpackData can be set (Chrome seems to have a bug, when name is shared)
-let webpackVersion = g.webpackJsonp.length == 2 ? 1 : 2;
-if (webpackVersion == 1) {
-	g.webpackJsonp([],
-		{0: function(module, exports, __webpack_require__) {
-			webpackData_ = __webpack_require__;
-			//MakeGlobal({webpackData: webpackData_});
-			g.webpackData = webpackData_;
-		}}
-	);
-} else {
-	g.webpackJsonp([],
-		{123456: function(module, exports, __webpack_require__) {
-			webpackData_ = __webpack_require__;
-			//MakeGlobal({webpackData: webpackData_});
-			g.webpackData = webpackData_;
-		}},
-		[123456]
-	);
+declare var __webpack_require__;
+//export var webpackData_; // needs to have different name, so that window.webpackData can be set (Chrome seems to have a bug, when name is shared)
+if (g.webpackData == null) {
+	/*if (typeof __webpack_require__ != "undefined") {
+		g.webpackData = __webpack_require__;
+	} else*/ if (g.webpackJsonp) {
+		let webpackVersion = g.webpackJsonp.length == 2 ? 1 : 2;
+		if (webpackVersion == 1) {
+			g.webpackJsonp([],
+				{0: function(module, exports, __webpack_require__) {
+					g.webpackData = __webpack_require__;
+				}}
+			);
+		} else {
+			g.webpackJsonp([],
+				{123456: function(module, exports, __webpack_require__) {
+					g.webpackData = __webpack_require__;
+				}},
+				[123456]
+			);
+		}
+	} else {
+		throw new Error(`window.webpackData must be set for webpack-runtime-require to function.${"\n"
+			}You can do so either by setting it directly (to __webpack_require__), or by making window.webpackJsonp available. (eg. using CommonsChunkPlugin)`);
+	}
 }
 
 export var allModulesText: string;
@@ -34,7 +38,7 @@ export var moduleNames = {} as {[key: number]: string};
 export function ParseModuleData() {
 	if (allModulesText != null) return;
 
-	let moduleWrapperFuncs = Object.keys(webpackData_.m).map(moduleID=>webpackData_.m[moduleID]);
+	let moduleWrapperFuncs = Object.keys(g.webpackData.m).map(moduleID=>g.webpackData.m[moduleID]);
 	allModulesText = moduleWrapperFuncs.map(a=>a.toString()).join("\n\n\n");
 
 	let hasPathInfo = allModulesText.indexOf("__webpack_require__(/*! ") != -1;
@@ -55,7 +59,7 @@ export function ParseModuleData() {
 			moduleIDs[moduleName] = parseInt(id);
 			moduleNames[parseInt(id)] = moduleName;
 			// also add module onto Require() function, using "_" as the delimiter instead of "-" (so shows in console auto-complete)
-			Require[moduleName.replace(/-/g, "_")] = webpackData_.c[id] ? webpackData_.c[id].exports : "[failed to retrieve module exports]";
+			Require[moduleName.replace(/-/g, "_")] = g.webpackData.c[id] ? g.webpackData.c[id].exports : "[failed to retrieve module exports]";
 		}
 	}
 	// else, infer it from the var-names of the imports
@@ -90,7 +94,7 @@ export function ParseModuleData() {
 			moduleIDs[moduleName] = parseInt(id);
 			moduleNames[parseInt(id)] = moduleName;
 			// also add module onto Require() function, using "_" as the delimiter instead of "-" (so shows in console auto-complete)
-			Require[moduleName.replace(/-/g, "_")] = webpackData_.c[id] ? webpackData_.c[id].exports : "[failed to retrieve module exports]";
+			Require[moduleName.replace(/-/g, "_")] = g.webpackData.c[id] ? g.webpackData.c[id].exports : "[failed to retrieve module exports]";
 		}
 	}
 
@@ -109,5 +113,5 @@ export function Require(name: string) {
 		return void ParseModuleData();
 
 	let id = GetIDForModule(name);
-	return webpackData_.c[id] ? webpackData_.c[id].exports : "[failed to retrieve module exports]";
+	return g.webpackData.c[id] ? g.webpackData.c[id].exports : "[failed to retrieve module exports]";
 }

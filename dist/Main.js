@@ -78,29 +78,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	        g[key] = props[key];
 	    }
 	}
-	console.assert(g.webpackJsonp, "\"window.webpackJsonp\" must be set for webpack-runtime-require to function.");
-	var webpackData_ = exports.webpackData_ = undefined; // needs to have different name, so that window.webpackData can be set (Chrome seems to have a bug, when name is shared)
-	var webpackVersion = g.webpackJsonp.length == 2 ? 1 : 2;
-	if (webpackVersion == 1) {
-	    g.webpackJsonp([], { 0: function _(module, exports, __webpack_require__) {
-	            exports.webpackData_ = webpackData_ = __webpack_require__;
-	            //MakeGlobal({webpackData: webpackData_});
-	            g.webpackData = webpackData_;
-	        } });
-	} else {
-	    g.webpackJsonp([], { 123456: function _(module, exports, __webpack_require__) {
-	            exports.webpackData_ = webpackData_ = __webpack_require__;
-	            //MakeGlobal({webpackData: webpackData_});
-	            g.webpackData = webpackData_;
-	        } }, [123456]);
+	//export var webpackData_; // needs to have different name, so that window.webpackData can be set (Chrome seems to have a bug, when name is shared)
+	if (g.webpackData == null) {
+	    /*if (typeof __webpack_require__ != "undefined") {
+	        g.webpackData = __webpack_require__;
+	    } else*/if (g.webpackJsonp) {
+	        var webpackVersion = g.webpackJsonp.length == 2 ? 1 : 2;
+	        if (webpackVersion == 1) {
+	            g.webpackJsonp([], { 0: function _(module, exports, __webpack_require__) {
+	                    g.webpackData = __webpack_require__;
+	                } });
+	        } else {
+	            g.webpackJsonp([], { 123456: function _(module, exports, __webpack_require__) {
+	                    g.webpackData = __webpack_require__;
+	                } }, [123456]);
+	        }
+	    } else {
+	        throw new Error("window.webpackData must be set for webpack-runtime-require to function." + "\n" + "You can do so either by setting it directly (to __webpack_require__), or by making window.webpackJsonp available. (eg. using CommonsChunkPlugin)");
+	    }
 	}
 	var allModulesText = exports.allModulesText = undefined;
 	var moduleIDs = exports.moduleIDs = {};
 	var moduleNames = exports.moduleNames = {};
 	function ParseModuleData() {
 	    if (allModulesText != null) return;
-	    var moduleWrapperFuncs = Object.keys(webpackData_.m).map(function (moduleID) {
-	        return webpackData_.m[moduleID];
+	    var moduleWrapperFuncs = Object.keys(g.webpackData.m).map(function (moduleID) {
+	        return g.webpackData.m[moduleID];
 	    });
 	    exports.allModulesText = allModulesText = moduleWrapperFuncs.map(function (a) {
 	        return a.toString();
@@ -131,7 +134,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                moduleIDs[moduleName] = parseInt(id);
 	                moduleNames[parseInt(id)] = moduleName;
 	                // also add module onto Require() function, using "_" as the delimiter instead of "-" (so shows in console auto-complete)
-	                Require[moduleName.replace(/-/g, "_")] = webpackData_.c[id] ? webpackData_.c[id].exports : "[failed to retrieve module exports]";
+	                Require[moduleName.replace(/-/g, "_")] = g.webpackData.c[id] ? g.webpackData.c[id].exports : "[failed to retrieve module exports]";
 	            }
 	        } catch (err) {
 	            _didIteratorError = true;
@@ -185,7 +188,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                moduleIDs[_moduleName] = parseInt(id);
 	                moduleNames[parseInt(id)] = _moduleName;
 	                // also add module onto Require() function, using "_" as the delimiter instead of "-" (so shows in console auto-complete)
-	                Require[_moduleName.replace(/-/g, "_")] = webpackData_.c[id] ? webpackData_.c[id].exports : "[failed to retrieve module exports]";
+	                Require[_moduleName.replace(/-/g, "_")] = g.webpackData.c[id] ? g.webpackData.c[id].exports : "[failed to retrieve module exports]";
 	            }
 	        } catch (err) {
 	            _didIteratorError2 = true;
@@ -213,7 +216,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function Require(name) {
 	    if (name === undefined) return void ParseModuleData();
 	    var id = GetIDForModule(name);
-	    return webpackData_.c[id] ? webpackData_.c[id].exports : "[failed to retrieve module exports]";
+	    return g.webpackData.c[id] ? g.webpackData.c[id].exports : "[failed to retrieve module exports]";
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
