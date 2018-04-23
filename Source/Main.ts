@@ -1,3 +1,5 @@
+import {GetModuleNameFromPath, GetModuleNameFromVarName} from "./Utils";
+
 declare var window, global;
 var g = typeof window != "undefined" ? window : global;
 function MakeGlobal(props) {
@@ -38,7 +40,7 @@ if (g.webpackData == null) {
 }
 
 export var allModulesText: string;
-export var moduleIDs = {} as {[key: string]: number};
+export var moduleIDs = {} as {[key: string]: number | string};
 export var moduleNames = {} as {[key: number]: string};
 export function ParseModuleData() {
 	if (allModulesText != null) return;
@@ -46,25 +48,25 @@ export function ParseModuleData() {
 	let moduleWrapperFuncs = Object.keys(g.webpackData.m).map(moduleID=>g.webpackData.m[moduleID]);
 	allModulesText = moduleWrapperFuncs.map(a=>a.toString()).join("\n\n\n");
 
-	let hasPathInfo = allModulesText.indexOf("__webpack_require__(/*! ") != -1;
-	// if has path-info embedded, just use that! (set using `webpackConfig.output.pathinfo: true`)
-	if (hasPathInfo) {
+	let requiresHavePaths = allModulesText.includes(`__webpack_require__("`);
+	let requiresHavePathComments = allModulesText.includes("__webpack_require__(/*! ");
+	// if requires themselves are by-path, then just use that! (set using [config.mode: "development"] or [config.optimization.namedModules: true])
+	if (requiresHavePaths) {
+		let regex = /__webpack_require__\([^")]*"(.+?)"\)/g;
+		for (let match; match = regex.exec(allModulesText);) {
+			let [_, path] = match;
+			AddModuleEntry(path, GetModuleNameFromPath(path));
+		}
+	}
+	// if requires have path-info embedded, then just use that! (set using [webpackConfig.output.pathinfo: true])
+	else if (requiresHavePathComments) {
 		// these are examples of before and after webpack's transformation: (which the regex below finds the path-comment of)
 		// 		require("react-redux-firebase") => var _reactReduxFirebase = __webpack_require__(/*! react-redux-firebase */ 100);
 		// 		require("./Source/MyComponent") => var _MyComponent = __webpack_require__(/*! ./Source/MyComponent */ 200);
 		let regex = /__webpack_require__\(\/\*! ((?:.(?!\*))+) \*\/ ([0-9]+)\)/g;
-		let matches = [] as RegExpMatchArray[];
-		let match;
-		while (match = regex.exec(allModulesText))
-			matches.push(match);
-
-		for (let [_, path, id] of matches) {
-			let moduleName = path.match(/[^/]+\/?$/)[0]; // if ends with /, it's a folder-require (resolves to folder/index)
-
-			moduleIDs[moduleName] = parseInt(id);
-			moduleNames[parseInt(id)] = moduleName;
-			// also add module onto Require() function, using "_" as the delimiter instead of "-" (so shows in console auto-complete)
-			Require[moduleName.replace(/-/g, "_")] = g.webpackData.c[id] ? g.webpackData.c[id].exports : "[failed to retrieve module exports]";
+		for (let match; match = regex.exec(allModulesText);) {
+			let [_, path, idStr] = match;
+			AddModuleEntry(parseInt(idStr), GetModuleNameFromPath(path));
 		}
 	}
 	// else, infer it from the var-names of the imports
@@ -73,37 +75,24 @@ export function ParseModuleData() {
 		// 		require("react-redux-firebase") => var _reactReduxFirebase = __webpack_require__(100);
 		// 		require("./Source/MyComponent") => var _MyComponent = __webpack_require__(200);
 		let regex = /var ([a-zA-Z_]+) = __webpack_require__\(([0-9]+)\)/g;
-		let matches = [] as RegExpMatchArray[];
-		let match;
-		while (match = regex.exec(allModulesText))
-			matches.push(match);
-
-		for (let [_, varName, id] of matches) {
-			// these are examples of before and after the below regex's transformation:
-			// 		_reactReduxFirebase => react-redux-firebase
-			// 		_MyComponent => my-component
-			// 		_MyComponent_New => my-component-new
-			// 		_JSONHelper => json-helper
-			let moduleName = varName
-				.replace(/^_/g, "") // remove starting "_"
-				.replace(new RegExp( // convert chars where:
-							"([^_])"		// is preceded by a non-underscore char
-						+ "[A-Z]"		// is a capital-letter
-						+ "([^A-Z_])",	// is followed by a non-capital-letter, non-underscore char
-					"g"),
-					str=>str[0] + "-" + str[1] + str[2] // to: "-" + char
-				)
-				.replace(/_/g, "-") // convert all "_" to "-"
-				.toLowerCase(); // convert all letters to lowercase
-			
-			moduleIDs[moduleName] = parseInt(id);
-			moduleNames[parseInt(id)] = moduleName;
-			// also add module onto Require() function, using "_" as the delimiter instead of "-" (so shows in console auto-complete)
-			Require[moduleName.replace(/-/g, "_")] = g.webpackData.c[id] ? g.webpackData.c[id].exports : "[failed to retrieve module exports]";
+		for (let match; match = regex.exec(allModulesText);) {
+			let [_, varName, idStr] = match;
+			AddModuleEntry(parseInt(idStr), GetModuleNameFromVarName(varName));
 		}
 	}
 
 	MakeGlobal({allModulesText, moduleIDs, moduleNames});
+}
+
+function AddModuleEntry(moduleID: string | number, moduleName: string) {
+	moduleIDs[moduleName] = moduleID;
+	moduleNames[moduleID] = moduleName;
+
+	let moduleName_simple = moduleName.replace(/-/g, "_"); // (so shows in console auto-complete)
+	Require[moduleName_simple] = GetModuleExports(moduleID); // also add module onto Require() function
+}
+function GetModuleExports(moduleID: number | string) {
+	return g.webpackData.c[moduleID] ? g.webpackData.c[moduleID].exports : "[failed to retrieve module exports]";
 }
 
 MakeGlobal({GetIDForModule});

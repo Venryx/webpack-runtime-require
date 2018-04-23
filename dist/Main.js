@@ -66,12 +66,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
+	exports.moduleNames = exports.moduleIDs = exports.allModulesText = undefined;
 
 	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 	exports.ParseModuleData = ParseModuleData;
 	exports.GetIDForModule = GetIDForModule;
 	exports.Require = Require;
+
+	var _Utils = __webpack_require__(2);
+
 	var g = typeof window != "undefined" ? window : global;
 	function MakeGlobal(props) {
 	    for (var key in props) {
@@ -109,104 +113,58 @@ return /******/ (function(modules) { // webpackBootstrap
 	    exports.allModulesText = allModulesText = moduleWrapperFuncs.map(function (a) {
 	        return a.toString();
 	    }).join("\n\n\n");
-	    var hasPathInfo = allModulesText.indexOf("__webpack_require__(/*! ") != -1;
-	    // if has path-info embedded, just use that! (set using `webpackConfig.output.pathinfo: true`)
-	    if (hasPathInfo) {
+	    var requiresHavePaths = allModulesText.includes("__webpack_require__(\"");
+	    var requiresHavePathComments = allModulesText.includes("__webpack_require__(/*! ");
+	    // if requires themselves are by-path, then just use that! (set using [config.mode: "development"] or [config.optimization.namedModules: true])
+	    if (requiresHavePaths) {
+	        var regex = /__webpack_require__\([^")]*"(.+?)"\)/g;
+	        for (var match; match = regex.exec(allModulesText);) {
+	            var _match = match,
+	                _match2 = _slicedToArray(_match, 2),
+	                _ = _match2[0],
+	                path = _match2[1];
+
+	            AddModuleEntry(path, (0, _Utils.GetModuleNameFromPath)(path));
+	        }
+	    } else if (requiresHavePathComments) {
 	        // these are examples of before and after webpack's transformation: (which the regex below finds the path-comment of)
 	        // 		require("react-redux-firebase") => var _reactReduxFirebase = __webpack_require__(/*! react-redux-firebase */ 100);
 	        // 		require("./Source/MyComponent") => var _MyComponent = __webpack_require__(/*! ./Source/MyComponent */ 200);
-	        var regex = /__webpack_require__\(\/\*! ((?:.(?!\*))+) \*\/ ([0-9]+)\)/g;
-	        var matches = [];
-	        var match = void 0;
-	        while (match = regex.exec(allModulesText)) {
-	            matches.push(match);
-	        }var _iteratorNormalCompletion = true;
-	        var _didIteratorError = false;
-	        var _iteratorError = undefined;
+	        var _regex = /__webpack_require__\(\/\*! ((?:.(?!\*))+) \*\/ ([0-9]+)\)/g;
+	        for (var _match3; _match3 = _regex.exec(allModulesText);) {
+	            var _match4 = _match3,
+	                _match5 = _slicedToArray(_match4, 3),
+	                _ = _match5[0],
+	                path = _match5[1],
+	                idStr = _match5[2];
 
-	        try {
-	            for (var _iterator = matches[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	                var _step$value = _slicedToArray(_step.value, 3),
-	                    _ = _step$value[0],
-	                    path = _step$value[1],
-	                    id = _step$value[2];
-
-	                var moduleName = path.match(/[^/]+\/?$/)[0]; // if ends with /, it's a folder-require (resolves to folder/index)
-	                moduleIDs[moduleName] = parseInt(id);
-	                moduleNames[parseInt(id)] = moduleName;
-	                // also add module onto Require() function, using "_" as the delimiter instead of "-" (so shows in console auto-complete)
-	                Require[moduleName.replace(/-/g, "_")] = g.webpackData.c[id] ? g.webpackData.c[id].exports : "[failed to retrieve module exports]";
-	            }
-	        } catch (err) {
-	            _didIteratorError = true;
-	            _iteratorError = err;
-	        } finally {
-	            try {
-	                if (!_iteratorNormalCompletion && _iterator.return) {
-	                    _iterator.return();
-	                }
-	            } finally {
-	                if (_didIteratorError) {
-	                    throw _iteratorError;
-	                }
-	            }
+	            AddModuleEntry(parseInt(idStr), (0, _Utils.GetModuleNameFromPath)(path));
 	        }
 	    } else {
 	        // these are examples of before and after webpack's transformation: (which the regex below finds the var-name of)
 	        // 		require("react-redux-firebase") => var _reactReduxFirebase = __webpack_require__(100);
 	        // 		require("./Source/MyComponent") => var _MyComponent = __webpack_require__(200);
-	        var _regex = /var ([a-zA-Z_]+) = __webpack_require__\(([0-9]+)\)/g;
-	        var _matches = [];
-	        var _match = void 0;
-	        while (_match = _regex.exec(allModulesText)) {
-	            _matches.push(_match);
-	        }var _iteratorNormalCompletion2 = true;
-	        var _didIteratorError2 = false;
-	        var _iteratorError2 = undefined;
+	        var _regex2 = /var ([a-zA-Z_]+) = __webpack_require__\(([0-9]+)\)/g;
+	        for (var _match6; _match6 = _regex2.exec(allModulesText);) {
+	            var _match7 = _match6,
+	                _match8 = _slicedToArray(_match7, 3),
+	                _ = _match8[0],
+	                varName = _match8[1],
+	                idStr = _match8[2];
 
-	        try {
-	            for (var _iterator2 = _matches[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	                var _step2$value = _slicedToArray(_step2.value, 3),
-	                    _ = _step2$value[0],
-	                    varName = _step2$value[1],
-	                    id = _step2$value[2];
-
-	                // these are examples of before and after the below regex's transformation:
-	                // 		_reactReduxFirebase => react-redux-firebase
-	                // 		_MyComponent => my-component
-	                // 		_MyComponent_New => my-component-new
-	                // 		_JSONHelper => json-helper
-	                var _moduleName = varName.replace(/^_/g, "") // remove starting "_"
-	                .replace(new RegExp( // convert chars where:
-	                "([^_])" // is preceded by a non-underscore char
-	                + "[A-Z]" // is a capital-letter
-	                + "([^A-Z_])", // is followed by a non-capital-letter, non-underscore char
-	                "g"), function (str) {
-	                    return str[0] + "-" + str[1] + str[2];
-	                } // to: "-" + char
-	                ).replace(/_/g, "-") // convert all "_" to "-"
-	                .toLowerCase(); // convert all letters to lowercase
-	                moduleIDs[_moduleName] = parseInt(id);
-	                moduleNames[parseInt(id)] = _moduleName;
-	                // also add module onto Require() function, using "_" as the delimiter instead of "-" (so shows in console auto-complete)
-	                Require[_moduleName.replace(/-/g, "_")] = g.webpackData.c[id] ? g.webpackData.c[id].exports : "[failed to retrieve module exports]";
-	            }
-	        } catch (err) {
-	            _didIteratorError2 = true;
-	            _iteratorError2 = err;
-	        } finally {
-	            try {
-	                if (!_iteratorNormalCompletion2 && _iterator2.return) {
-	                    _iterator2.return();
-	                }
-	            } finally {
-	                if (_didIteratorError2) {
-	                    throw _iteratorError2;
-	                }
-	            }
+	            AddModuleEntry(parseInt(idStr), (0, _Utils.GetModuleNameFromVarName)(varName));
 	        }
 	    }
 	    MakeGlobal({ allModulesText: allModulesText, moduleIDs: moduleIDs, moduleNames: moduleNames });
+	}
+	function AddModuleEntry(moduleID, moduleName) {
+	    moduleIDs[moduleName] = moduleID;
+	    moduleNames[moduleID] = moduleName;
+	    var moduleName_simple = moduleName.replace(/-/g, "_"); // (so shows in console auto-complete)
+	    Require[moduleName_simple] = GetModuleExports(moduleID); // also add module onto Require() function
+	}
+	function GetModuleExports(moduleID) {
+	    return g.webpackData.c[moduleID] ? g.webpackData.c[moduleID].exports : "[failed to retrieve module exports]";
 	}
 	MakeGlobal({ GetIDForModule: GetIDForModule });
 	function GetIDForModule(name) {
@@ -220,6 +178,42 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return g.webpackData.c[id] ? g.webpackData.c[id].exports : "[failed to retrieve module exports]";
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 2 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.GetModuleNameFromPath = GetModuleNameFromPath;
+	exports.GetModuleNameFromVarName = GetModuleNameFromVarName;
+	function GetModuleNameFromPath(path) {
+	    var parts = path.split("/");
+	    // last part might be empty, so find last part with content (path might end with /, if it's a folder-require -- which resolves to folder/index)
+	    var lastPartWithContent = parts[parts.length - 1] || parts[parts.length - 2];
+	    return lastPartWithContent.replace(/\.[^.]+/, ""); // remove extension
+	}
+	function GetModuleNameFromVarName(varName) {
+	    // these are examples of before and after the below transformation code:
+	    // 		_reactReduxFirebase => react-redux-firebase
+	    // 		_MyComponent => my-component
+	    // 		_MyComponent_New => my-component-new
+	    // 		_JSONHelper => json-helper
+	    var moduleName = varName.replace(/^_/g, "") // remove starting "_"
+	    .replace(new RegExp( // convert chars where:
+	    "([^_])" // is preceded by a non-underscore char
+	    + "[A-Z]" // is a capital-letter
+	    + "([^A-Z_])", // is followed by a non-capital-letter, non-underscore char
+	    "g"), function (str) {
+	        return str[0] + "-" + str[1] + str[2];
+	    } // to: "-" + char
+	    ).replace(/_/g, "-") // convert all "_" to "-"
+	    .toLowerCase(); // convert all letters to lowercase
+	    return moduleName;
+	}
 
 /***/ }
 /******/ ])
