@@ -49,12 +49,6 @@ import {Require} from "webpack-runtime-require";
 Require("react");
 ```
 
-### Troubleshooting
-
-#### Even after setting `window.webpackData`, no modules are found
-
-* If you're using Webpack 4, this may be because you've set `mode: "development"` or `optimization.namedModules: true`. Try setting `optimization.namedModules: false` for now. (until it's fixed)
-
 ### Additional usage
 
 If you're using the dev-tools Console, you can see autocomplete for the modules:
