@@ -46,25 +46,26 @@ export function ParseModuleData() {
 	if (allModulesText != null) return;
 
 	let moduleWrapperFuncs = Object.keys(g.webpackData.m).map(moduleID=>g.webpackData.m[moduleID]);
-	allModulesText = moduleWrapperFuncs.map(a=>a.toString()).join("\n\n\n");
+	allModulesText = moduleWrapperFuncs.map(a=>a.toString()).join("\n\n\n").replace(/\\"/g, `"`);
 
-	let requiresHavePaths = allModulesText.includes(`__webpack_require__("`);
-	let requiresHavePathComments = allModulesText.includes("__webpack_require__(/*! ");
+	// these are examples of before and after webpack's transformation: (which the regex below finds the path of)
+	// 		require("jquery") => __webpack_require__("jquery")
+	let requiresWithPathsRegex = /__webpack_require__\([^")]*"(.+?)"\)/g;
+	// these are examples of before and after webpack's transformation: (which the regex below finds the path-comment of)
+	// 		require("react-redux-firebase") => var _reactReduxFirebase = __webpack_require__(/*! react-redux-firebase */ 100);
+	// 		require("./Source/MyComponent") => var _MyComponent = __webpack_require__(/*! ./Source/MyComponent */ 200);
+	let requiresWithPathCommentsRegex = /__webpack_require__\(\/\*! ((?:.(?!\*))+) \*\/ ([0-9]+)\)/g;
+
 	// if requires themselves are by-path, then just use that! (set using [config.mode: "development"] or [config.optimization.namedModules: true])
-	if (requiresHavePaths) {
-		let regex = /__webpack_require__\([^")]*"(.+?)"\)/g;
-		for (let match; match = regex.exec(allModulesText);) {
+	if (allModulesText.match(requiresWithPathsRegex)) {
+		for (let match; match = requiresWithPathsRegex.exec(allModulesText);) {
 			let [_, path] = match;
 			AddModuleEntry(path, GetModuleNameFromPath(path));
 		}
 	}
 	// if requires have path-info embedded, then just use that! (set using [webpackConfig.output.pathinfo: true])
-	else if (requiresHavePathComments) {
-		// these are examples of before and after webpack's transformation: (which the regex below finds the path-comment of)
-		// 		require("react-redux-firebase") => var _reactReduxFirebase = __webpack_require__(/*! react-redux-firebase */ 100);
-		// 		require("./Source/MyComponent") => var _MyComponent = __webpack_require__(/*! ./Source/MyComponent */ 200);
-		let regex = /__webpack_require__\(\/\*! ((?:.(?!\*))+) \*\/ ([0-9]+)\)/g;
-		for (let match; match = regex.exec(allModulesText);) {
+	else if (allModulesText.match(requiresWithPathCommentsRegex)) {
+		for (let match; match = requiresWithPathCommentsRegex.exec(allModulesText);) {
 			let [_, path, idStr] = match;
 			AddModuleEntry(parseInt(idStr), GetModuleNameFromPath(path));
 		}
@@ -107,5 +108,6 @@ export function Require(name: string) {
 		return void ParseModuleData();
 
 	let id = GetIDForModule(name);
+	if (id == null) return "[could not find the given module]";
 	return g.webpackData.c[id] ? g.webpackData.c[id].exports : "[failed to retrieve module exports]";
 }

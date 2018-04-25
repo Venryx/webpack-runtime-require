@@ -112,13 +112,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 	    exports.allModulesText = allModulesText = moduleWrapperFuncs.map(function (a) {
 	        return a.toString();
-	    }).join("\n\n\n");
-	    var requiresHavePaths = allModulesText.includes("__webpack_require__(\"");
-	    var requiresHavePathComments = allModulesText.includes("__webpack_require__(/*! ");
+	    }).join("\n\n\n").replace(/\\"/g, "\"");
+	    // these are examples of before and after webpack's transformation: (which the regex below finds the path of)
+	    // 		require("jquery") => __webpack_require__("jquery")
+	    var requiresWithPathsRegex = /__webpack_require__\([^")]*"(.+?)"\)/g;
+	    // these are examples of before and after webpack's transformation: (which the regex below finds the path-comment of)
+	    // 		require("react-redux-firebase") => var _reactReduxFirebase = __webpack_require__(/*! react-redux-firebase */ 100);
+	    // 		require("./Source/MyComponent") => var _MyComponent = __webpack_require__(/*! ./Source/MyComponent */ 200);
+	    var requiresWithPathCommentsRegex = /__webpack_require__\(\/\*! ((?:.(?!\*))+) \*\/ ([0-9]+)\)/g;
 	    // if requires themselves are by-path, then just use that! (set using [config.mode: "development"] or [config.optimization.namedModules: true])
-	    if (requiresHavePaths) {
-	        var regex = /__webpack_require__\([^")]*"(.+?)"\)/g;
-	        for (var match; match = regex.exec(allModulesText);) {
+	    if (allModulesText.match(requiresWithPathsRegex)) {
+	        for (var match; match = requiresWithPathsRegex.exec(allModulesText);) {
 	            var _match = match,
 	                _match2 = _slicedToArray(_match, 2),
 	                _ = _match2[0],
@@ -126,12 +130,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	            AddModuleEntry(path, (0, _Utils.GetModuleNameFromPath)(path));
 	        }
-	    } else if (requiresHavePathComments) {
-	        // these are examples of before and after webpack's transformation: (which the regex below finds the path-comment of)
-	        // 		require("react-redux-firebase") => var _reactReduxFirebase = __webpack_require__(/*! react-redux-firebase */ 100);
-	        // 		require("./Source/MyComponent") => var _MyComponent = __webpack_require__(/*! ./Source/MyComponent */ 200);
-	        var _regex = /__webpack_require__\(\/\*! ((?:.(?!\*))+) \*\/ ([0-9]+)\)/g;
-	        for (var _match3; _match3 = _regex.exec(allModulesText);) {
+	    } else if (allModulesText.match(requiresWithPathCommentsRegex)) {
+	        for (var _match3; _match3 = requiresWithPathCommentsRegex.exec(allModulesText);) {
 	            var _match4 = _match3,
 	                _match5 = _slicedToArray(_match4, 3),
 	                _ = _match5[0],
@@ -144,8 +144,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // these are examples of before and after webpack's transformation: (which the regex below finds the var-name of)
 	        // 		require("react-redux-firebase") => var _reactReduxFirebase = __webpack_require__(100);
 	        // 		require("./Source/MyComponent") => var _MyComponent = __webpack_require__(200);
-	        var _regex2 = /var ([a-zA-Z_]+) = __webpack_require__\(([0-9]+)\)/g;
-	        for (var _match6; _match6 = _regex2.exec(allModulesText);) {
+	        var regex = /var ([a-zA-Z_]+) = __webpack_require__\(([0-9]+)\)/g;
+	        for (var _match6; _match6 = regex.exec(allModulesText);) {
 	            var _match7 = _match6,
 	                _match8 = _slicedToArray(_match7, 3),
 	                _ = _match8[0],
@@ -175,6 +175,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function Require(name) {
 	    if (name === undefined) return void ParseModuleData();
 	    var id = GetIDForModule(name);
+	    if (id == null) return "[could not find the given module]";
 	    return g.webpackData.c[id] ? g.webpackData.c[id].exports : "[failed to retrieve module exports]";
 	}
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
