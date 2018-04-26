@@ -106,7 +106,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	var moduleIDs = exports.moduleIDs = {};
 	var moduleNames = exports.moduleNames = {};
 	function ParseModuleData() {
-	    if (allModulesText != null) return;
+	    var forceRefresh = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
+	    if (allModulesText != null && !forceRefresh) return;
 	    var moduleWrapperFuncs = Object.keys(g.webpackData.m).map(function (moduleID) {
 	        return g.webpackData.m[moduleID];
 	    });

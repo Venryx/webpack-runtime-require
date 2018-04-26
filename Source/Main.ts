@@ -42,8 +42,8 @@ if (g.webpackData == null) {
 export var allModulesText: string;
 export var moduleIDs = {} as {[key: string]: number | string};
 export var moduleNames = {} as {[key: number]: string};
-export function ParseModuleData() {
-	if (allModulesText != null) return;
+export function ParseModuleData(forceRefresh = false) {
+	if (allModulesText != null && !forceRefresh) return;
 
 	let moduleWrapperFuncs = Object.keys(g.webpackData.m).map(moduleID=>g.webpackData.m[moduleID]);
 	allModulesText = moduleWrapperFuncs.map(a=>a.toString()).join("\n\n\n").replace(/\\"/g, `"`);
