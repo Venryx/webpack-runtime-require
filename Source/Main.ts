@@ -1,4 +1,5 @@
 import {GetModuleNameFromPath, GetModuleNameFromVarName} from "./Utils";
+export {GetModuleNameFromPath, GetModuleNameFromVarName};
 
 declare var window, global;
 var g = typeof window != "undefined" ? window : global;
