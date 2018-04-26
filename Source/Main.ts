@@ -57,22 +57,22 @@ export function ParseModuleData(forceRefresh = false) {
 	// 		require("./Source/MyComponent") => var _MyComponent = __webpack_require__(/*! ./Source/MyComponent */ 200);
 	let requiresWithPathCommentsRegex = /__webpack_require__\(\/\*! ((?:.(?!\*))+) \*\/ ([0-9]+)\)/g;
 
-	// if requires themselves are by-path, then just use that! (set using [config.mode: "development"] or [config.optimization.namedModules: true])
+	// if requires themselves are by-path, just use that (set using [config.mode: "development"] or [config.optimization.namedModules: true])
 	if (allModulesText.match(requiresWithPathsRegex)) {
 		for (let match; match = requiresWithPathsRegex.exec(allModulesText);) {
 			let [_, path] = match;
 			AddModuleEntry(path, GetModuleNameFromPath(path));
 		}
 	}
-	// if requires have path-info embedded, then just use that! (set using [webpackConfig.output.pathinfo: true])
-	else if (allModulesText.match(requiresWithPathCommentsRegex)) {
+	// if requires have path-info embedded, just use that (set using [webpackConfig.output.pathinfo: true])
+	if (allModulesText.match(requiresWithPathCommentsRegex)) {
 		for (let match; match = requiresWithPathCommentsRegex.exec(allModulesText);) {
 			let [_, path, idStr] = match;
 			AddModuleEntry(parseInt(idStr), GetModuleNameFromPath(path));
 		}
 	}
 	// else, infer it from the var-names of the imports
-	else {
+	if (!allModulesText.match(requiresWithPathsRegex) && !allModulesText.match(requiresWithPathCommentsRegex)) {
 		// these are examples of before and after webpack's transformation: (which the regex below finds the var-name of)
 		// 		require("react-redux-firebase") => var _reactReduxFirebase = __webpack_require__(100);
 		// 		require("./Source/MyComponent") => var _MyComponent = __webpack_require__(200);

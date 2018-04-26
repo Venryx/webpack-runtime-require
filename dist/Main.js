@@ -125,7 +125,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // 		require("react-redux-firebase") => var _reactReduxFirebase = __webpack_require__(/*! react-redux-firebase */ 100);
 	    // 		require("./Source/MyComponent") => var _MyComponent = __webpack_require__(/*! ./Source/MyComponent */ 200);
 	    var requiresWithPathCommentsRegex = /__webpack_require__\(\/\*! ((?:.(?!\*))+) \*\/ ([0-9]+)\)/g;
-	    // if requires themselves are by-path, then just use that! (set using [config.mode: "development"] or [config.optimization.namedModules: true])
+	    // if requires themselves are by-path, just use that (set using [config.mode: "development"] or [config.optimization.namedModules: true])
 	    if (allModulesText.match(requiresWithPathsRegex)) {
 	        for (var match; match = requiresWithPathsRegex.exec(allModulesText);) {
 	            var _match = match,
@@ -135,7 +135,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	            AddModuleEntry(path, (0, _Utils.GetModuleNameFromPath)(path));
 	        }
-	    } else if (allModulesText.match(requiresWithPathCommentsRegex)) {
+	    }
+	    // if requires have path-info embedded, just use that (set using [webpackConfig.output.pathinfo: true])
+	    if (allModulesText.match(requiresWithPathCommentsRegex)) {
 	        for (var _match3; _match3 = requiresWithPathCommentsRegex.exec(allModulesText);) {
 	            var _match4 = _match3,
 	                _match5 = _slicedToArray(_match4, 3),
@@ -145,7 +147,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	            AddModuleEntry(parseInt(idStr), (0, _Utils.GetModuleNameFromPath)(path));
 	        }
-	    } else {
+	    }
+	    // else, infer it from the var-names of the imports
+	    if (!allModulesText.match(requiresWithPathsRegex) && !allModulesText.match(requiresWithPathCommentsRegex)) {
 	        // these are examples of before and after webpack's transformation: (which the regex below finds the var-name of)
 	        // 		require("react-redux-firebase") => var _reactReduxFirebase = __webpack_require__(100);
 	        // 		require("./Source/MyComponent") => var _MyComponent = __webpack_require__(200);
