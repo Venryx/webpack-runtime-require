@@ -16,7 +16,7 @@ npm install --save webpack-runtime-require
    A) Store the webpack data globally prior to importing this library. (webpack exposes some closure variables to your project modules/code)  
       1) If on Webpack 6+, run:
 			```
-			window.AddWebpackData({__webpack_require__, __webpack_modules__, __webpack_module_cache__});
+			window.AddWebpackData({__webpack_require__, __webpack_modules__: __webpack_modules__, __webpack_module_cache__});
 			```
 	2) If on Webpack 5 or below, run:
 		```

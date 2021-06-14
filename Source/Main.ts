@@ -27,6 +27,8 @@ g.AddWebpackData = function(data: {__webpack_require__, __webpack_modules__, __w
 		modules: data.__webpack_modules__ ?? data.__webpack_require__.m,
 		moduleCache: data.__webpack_module_cache__ ?? data.__webpack_require__.c,
 	};
+	if (g.webpackData.modules == null) console.warn("g.webpackData.modules is null! webpack-runtime-require needs this to function.");
+	if (g.webpackData.moduleCache == null) console.warn("g.webpackData.moduleCache is null! webpack-runtime-require needs this to function.");
 }
 
 // if webpack-data still missing (ie. not supplied by user), try to find it automatically
