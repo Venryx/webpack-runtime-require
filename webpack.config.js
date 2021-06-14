@@ -1,6 +1,7 @@
 var webpack = require("webpack");
 
 module.exports = {
+	mode: "production",
 	entry: ["./Source/Main.ts"],
 	output: {
 		path: __dirname + "/dist",
@@ -9,23 +10,31 @@ module.exports = {
 		libraryTarget: "umd",
 	},
 	resolve: {
-		root: "Source",
+		//root: "Source",
 		extensions: ["", ".ts"],
 	},
 	module: {
-		loaders: [
+		rules: [
 			{
 				test: /\.ts$/,
-				loader: "babel",
+				loader: "babel-loader",
 				exclude: /node_modules/,
-				query: {
-					presets: ["es2015"]
+				options: {
+					presets: [
+						[
+							"@babel/env",
+							{
+								//targets: {esmodules: true}, // target es2015
+								targets: {node: "6.5"}, // target es2015
+							},
+						],
+					],
 				}
 			},
 			{test: /\.ts$/, loader: "ts-loader"},
 		]
 	},
 	plugins: [
-		new webpack.NoErrorsPlugin(),
+		//new webpack.NoErrorsPlugin(),
 	]
 };

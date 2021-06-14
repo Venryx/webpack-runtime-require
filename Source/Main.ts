@@ -2,32 +2,59 @@ import {GetModuleNameFromPath, GetModuleNameFromVarName} from "./Utils";
 export {GetModuleNameFromPath, GetModuleNameFromVarName};
 
 declare var window, global;
-var g = typeof window != "undefined" ? window : global;
+var g = (typeof window != "undefined" ? window : global) as {
+	webpackJsonp: Function; // added by webpack, if enabled in config
+	AddWebpackData: Function; // custom function to easily populate the webpackData field
+	// custom construct to standardize data access across webpack versions
+	webpackData: {
+		requireFunc: Function; // the "__webpack_require__" object; in wp v<5, this contains the "modules" and "moduleCache" fields as well (as "m" and "c")
+		modules: {[key: string]: Function}; // the "__webpack_modules__" object, in wp 5+ 
+		moduleCache: {[key: string]: {id: string; exports: any; loaded: boolean}}; // the "__webpack_module_cache__" object, in wp 5+
+	};
+};
 function MakeGlobal(props) {
-	for (let key in props)
+	for (const key in props) {
 		g[key] = props[key];
+	}
 }
 
-declare var __webpack_require__;
-// if webpack-data was not explicitly specified prior to library import, try to find the data
+declare var __webpack_require__, __webpack_modules__, __webpack_module_cache__;
+
+// func for supplying webpack-data; preferably user will call this directly, prior to lib's import (option A in readme)
+g.AddWebpackData = function(data: {__webpack_require__, __webpack_modules__, __webpack_module_cache__}) {
+	g.webpackData = {
+		requireFunc: data.__webpack_require__,
+		modules: data.__webpack_modules__ ?? data.__webpack_require__.m,
+		moduleCache: data.__webpack_module_cache__ ?? data.__webpack_require__.c,
+	};
+}
+
+// if webpack-data still missing (ie. not supplied by user), try to find it automatically
 if (g.webpackData == null) {
-	// if included using `module: "src/Main.ts"`, we can access webpack-data directly
-	if (typeof __webpack_require__ != "undefined" && __webpack_require__.m.length > 2) {
-		g.webpackData = __webpack_require__;
+	// if webpack closure variables exist, use them (option B in readme)
+	if (typeof __webpack_require__ != "undefined") {
+		g.AddWebpackData({
+			__webpack_require__,
+			__webpack_modules__: typeof __webpack_modules__ != "undefined" ? __webpack_modules__ : null,
+			__webpack_module_cache__: typeof __webpack_module_cache__ != "undefined" ? __webpack_module_cache__ : null,
+		});
+		/*if (g.webpackData.modules?.length <= 2) {
+			g.webpackData = null;
+		}*/
 	}
-	// else, try to access it using webpackJsonp (the function only seems to be available if CommonsChunkPlugin is used)
+	// else, try to find it using webpackJsonp (option C in readme) [wp <=4 only, and requires CommonsChunkPlugin]
 	else if (g.webpackJsonp) {
 		let webpackVersion = g.webpackJsonp.length == 2 ? 1 : 2;
 		if (webpackVersion == 1) {
 			g.webpackJsonp([],
 				{0: function(module, exports, __webpack_require__) {
-					g.webpackData = __webpack_require__;
+					g.AddWebpackData({__webpack_require__});
 				}}
 			);
 		} else {
 			g.webpackJsonp([],
 				{123456: function(module, exports, __webpack_require__) {
-					g.webpackData = __webpack_require__;
+					g.AddWebpackData({__webpack_require__});
 				}},
 				[123456]
 			);
@@ -35,8 +62,8 @@ if (g.webpackData == null) {
 	}
 	// else, give up and throw error
 	else {
-		throw new Error(`window.webpackData must be set for webpack-runtime-require to function.${"\n"
-			}You can do so either by setting it directly (to __webpack_require__), or by making window.webpackJsonp available. (eg. using CommonsChunkPlugin)`);
+		throw new Error(`window.webpackData must be populated for webpack-runtime-require to function.${"\n"
+			}See readme for instructions: https://github.com/Venryx/webpack-runtime-require`);
 	}
 }
 
@@ -46,7 +73,8 @@ export var moduleNames = {} as {[key: number]: string};
 export function ParseModuleData(forceRefresh = false) {
 	if (allModulesText != null && !forceRefresh) return;
 
-	let moduleWrapperFuncs = Object.keys(g.webpackData.m).map(moduleID=>g.webpackData.m[moduleID]);
+	//let moduleWrapperFuncs = Object.keys(g.webpackData.modules).map(moduleID=>g.webpackData.modules[moduleID]);
+	let moduleWrapperFuncs = Object.values(g.webpackData.modules);
 	allModulesText = moduleWrapperFuncs.map(a=>a.toString()).join("\n\n\n").replace(/\\"/g, `"`);
 
 	// these are examples of before and after webpack's transformation: (based on which the 1st regex below finds path-comments)
@@ -101,7 +129,7 @@ function AddModuleEntry(moduleID: string | number, moduleName: string) {
 	Require[moduleName_simple] = GetModuleExports(moduleID);
 }
 function GetModuleExports(moduleID: number | string) {
-	return g.webpackData.c[moduleID] ? g.webpackData.c[moduleID].exports : "[failed to retrieve module exports]";
+	return g.webpackData.moduleCache[moduleID]?.exports ?? "[failed to retrieve module exports]";
 }
 
 MakeGlobal({GetIDForModule});
