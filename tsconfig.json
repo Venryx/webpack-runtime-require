@@ -1,31 +1,31 @@
 {
-    "compilerOptions": {
-        "rootDir": "Source",
+	"compilerOptions": {
+		"rootDir": "Source",
 		//"baseUrl": "Source", // keep commented; this way, we remember to always use relative paths (needed for in-node-modules typescript type-resolving)
-
 		// general
-        "sourceMap": true,
+		"sourceMap": true,
 		"watch": true,
 		"moduleResolution": "node",
-
 		// compiler options
 		"target": "es2015",
-        //"allowJs": true,
+		//"allowJs": true,
 		"jsx": "react",
-        "noImplicitAny": false,
+		"noImplicitAny": false,
 		"experimentalDecorators": true,
 		"allowSyntheticDefaultImports": true,
 		"declaration": true,
 		"declarationDir": "."
-    },
-	"files": ["Source/Main.ts"],
-    "include": [
-        "Typings/**/*.d.ts",
-        "Source/**/*.ts"
-    ],
-    "exclude": [
+	},
+	"files": [
+		"Source/Main.ts"
+	],
+	"include": [
+		"Typings/**/*.d.ts",
+		"Source/**/*.ts"
+	],
+	"exclude": [
 		"node_modules",
-        "dist"
-    ],
+		"Dist"
+	],
 	"compileOnSave": true
 }

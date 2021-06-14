@@ -6,7 +6,7 @@
 	"typings": "Dist/Main.d.ts",
 	"scripts": {
 		"dev": "webpack --config webpack.config.js --progress --watch",
-		"dist": "babel src/index.jsx -u -o dist/index.js --stage 1 --presets react"
+		"dist": "babel src/index.jsx -u -o Dist/index.js --stage 1 --presets react"
 	},
 	"repository": {
 		"type": "git",

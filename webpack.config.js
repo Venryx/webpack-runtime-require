@@ -4,7 +4,7 @@ module.exports = {
 	mode: "production",
 	entry: ["./Source/Main.ts"],
 	output: {
-		path: __dirname + "/dist",
+		path: __dirname + "/Dist",
 		publicPath: "http://localhost:8080/",
 		filename: "Main.js",
 		libraryTarget: "umd",
