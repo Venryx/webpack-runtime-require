@@ -25,6 +25,10 @@ npm install --save webpack-runtime-require
 	If that fails, try the following: (make sure the below runs before any uses of the `wrr` fields/functions)
 	```
 	import {Init} from "webpack-runtime-require";
+
+	// if you're using typescript, uncomment the line below
+	//declare var __webpack_require__, __webpack_modules__, __webpack_module_cache__;
+
 	Init({
 		__webpack_require__,
 		// omit the two below if on Webpack 4 or below
