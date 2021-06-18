@@ -66,4 +66,4 @@ If you're using the dev-tools console, you can see autocomplete for the modules:
 You should then see all the modules in your app displayed in the autocomplete dropdown.
 
 Other useful contents of the `window.wrr` structure:
-* `wrr.moduleExports_flat`: Contains the exports from every module, stored by *export name* rather than *module name*.
+* `wrr.moduleExports_flat`: Contains the exports from every module, stored by *export name* rather than module name.
