@@ -48,6 +48,9 @@ npm install --save webpack-runtime-require
 	// if path was "./Path/To/MyComponent", specify just the file-name
 	let MyComponent = wrr.Require("MyComponent");
 	console.log("Retrieved MyComponent: " + MyComponent);
+
+	// if you want to import by path instead of file-name, see here:
+	//   https://github.com/Venryx/webpack-runtime-require/issues/3#issuecomment-864035793
 	```
 
 	Alternately, you can import the `wrr` object from compile-time code, and use it that way:
