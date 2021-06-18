@@ -3,18 +3,20 @@
 		"rootDir": "Source",
 		//"baseUrl": "Source", // keep commented; this way, we remember to always use relative paths (needed for in-node-modules typescript type-resolving)
 		// general
-		"sourceMap": true,
+		//"sourceMap": true,
 		"watch": true,
 		"moduleResolution": "node",
 		// compiler options
-		"target": "es2015",
+		"target": "es2017",
 		//"allowJs": true,
 		"jsx": "react",
 		"noImplicitAny": false,
 		"experimentalDecorators": true,
 		"allowSyntheticDefaultImports": true,
+
+		"outDir": "Dist",
 		"declaration": true,
-		"declarationDir": "Dist"
+		"declarationDir": "Dist",
 	},
 	"files": [
 		"Source/Main.ts"

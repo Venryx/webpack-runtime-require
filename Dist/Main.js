@@ -1,1 +1,98 @@
-!function(e,t){if("object"==typeof exports&&"object"==typeof module)module.exports=t();else if("function"==typeof define&&define.amd)define([],t);else{var o=t();for(var r in o)("object"==typeof exports?exports:e)[r]=o[r]}}(self,(function(){return(()=>{"use strict";var e={526:(e,o,r)=>{function n(e){let t=e.split("/");return(t[t.length-1]||t[t.length-2]).replace(/\.[^.]+/,"")}function a(e){return e.replace(/^_/g,"").replace(new RegExp("([^_])[A-Z]([^A-Z_])","g"),(e=>e[0]+"-"+e[1]+e[2])).replace(/_/g,"-").toLowerCase()}r.r(o),r.d(o,{GetIDForModule:()=>s,GetModuleNameFromPath:()=>n,GetModuleNameFromVarName:()=>a,ParseModuleData:()=>d,Require:()=>m,allModulesText:()=>l,moduleIDs:()=>c,moduleNames:()=>_});var l,u="undefined"!=typeof window?window:r.g;function i(e){for(const t in e)u[t]=e[t]}u.AddWebpackData=function(e){var t,o;u.webpackData={requireFunc:e.__webpack_require__,modules:null!==(t=e.__webpack_modules__)&&void 0!==t?t:e.__webpack_require__.m,moduleCache:null!==(o=e.__webpack_module_cache__)&&void 0!==o?o:e.__webpack_require__.c},null==u.webpackData.modules&&console.warn("g.webpackData.modules is null! webpack-runtime-require needs this to function."),null==u.webpackData.moduleCache&&console.warn("g.webpackData.moduleCache is null! webpack-runtime-require needs this to function.")},null==u.webpackData&&u.AddWebpackData({__webpack_require__:r,__webpack_modules__:r.m,__webpack_module_cache__:void 0!==t?t:null});var c={},_={};function d(e=!1){if(null!=l&&!e)return;let t=Object.values(u.webpackData.modules),o=/__webpack_require__\(\/\*! (.+?) \*\/ ["']?([^"'\)]+?)["']?\)/g,r=/__webpack_require__\("(.+?)"\)/g;if((l=t.map((e=>e.toString())).join("\n\n\n").replace(/\\"/g,'"')).match(o))for(let e;e=o.exec(l);){let[t,o,r]=e;p(r,n(o))}if(l.match(r))for(let e;e=r.exec(l);){let[t,o]=e;p(o,n(o))}if(!l.match(r)&&!l.match(o)){let e,t=/var ([a-zA-Z_]+) = __webpack_require__\(([0-9]+)\)/g;for(;e=t.exec(l);){let[t,o,r]=e;p(parseInt(r),a(o))}}i({allModulesText:l,moduleIDs:c,moduleNames:_})}function p(e,t){c[t]=e,_[e]=t;let o=t.replace(/-/g,"_");for(;o in m;)o+="_";m[o]=f(e)}function f(e){var t,o;return null!==(o=null===(t=u.webpackData.moduleCache[e])||void 0===t?void 0:t.exports)&&void 0!==o?o:"[failed to retrieve module exports]"}function s(e){return d(),c[e]}function m(e){if(void 0===e)return void d();let t=s(e);return null==t?"[could not find the given module]":f(t)}i({GetIDForModule:s}),i({Require:m})}},t={};function o(r){var n=t[r];if(void 0!==n)return n.exports;var a=t[r]={exports:{}};return e[r](a,a.exports,o),a.exports}return o.m=e,o.d=(e,t)=>{for(var r in t)o.o(t,r)&&!o.o(e,r)&&Object.defineProperty(e,r,{enumerable:!0,get:t[r]})},o.g=function(){if("object"==typeof globalThis)return globalThis;try{return this||new Function("return this")()}catch(e){if("object"==typeof window)return window}}(),o.o=(e,t)=>Object.prototype.hasOwnProperty.call(e,t),o.r=e=>{"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},o(526)})()}));
+import { GetModuleNameFromPath, GetModuleNameFromVarName, ParseModuleEntriesFromAllModulesText as ParseModuleEntriesFromAllModulesCode, StoreValueWithUniqueName } from "./Utils.js";
+export { GetModuleNameFromPath, GetModuleNameFromVarName };
+// convenience/stable-api function
+export function Init(opts) {
+    WRR.main.AddWebpackData(opts);
+}
+export class WRR {
+    constructor() {
+        var _a;
+        // wrr data-structures
+        // func for supplying webpack-data; preferably user will call this function directly (as seen in readme), to ensure the special variables are accessible
+        this.AddWebpackData = (data) => {
+            var _a, _b;
+            this.webpackData = {
+                requireFunc: data.__webpack_require__,
+                modules: (_a = data.__webpack_modules__) !== null && _a !== void 0 ? _a : data.__webpack_require__.m,
+                moduleCache: (_b = data.__webpack_module_cache__) !== null && _b !== void 0 ? _b : data.__webpack_require__.c,
+            };
+            if (this.webpackData.requireFunc == null)
+                console.warn("webpackData.requireFunc is null! webpack-runtime-require needs this to function.");
+            if (this.webpackData.modules == null)
+                console.warn("webpackData.modules is null! webpack-runtime-require needs this to function.");
+            if (this.webpackData.moduleCache == null)
+                console.warn("webpackData.moduleCache is null! webpack-runtime-require needs this to function.");
+            /*if (this.webpackData.modules?.length <= 2) {
+                console.warn("webpackData.modules appears to have 2 or fewer modules. Did you call Init(...) from the correct chunk?")
+            }*/
+        };
+        this.moduleIDs = {};
+        this.moduleNames = {};
+        this.moduleExports = {};
+        this.moduleExports_flat = {};
+        this.ParseModuleData = (forceRefresh = false) => {
+            if (this.allModulesCode != null && !forceRefresh)
+                return;
+            //let moduleWrapperFuncs = Object.keys(this.webpackData.modules).map(moduleID=>this.webpackData.modules[moduleID]);
+            let moduleWrapperFuncs = Object.values(this.webpackData.modules);
+            this.allModulesCode = moduleWrapperFuncs.map(a => a.toString()).join("\n\n\n").replace(/\\"/g, `"`);
+            const moduleEntries = ParseModuleEntriesFromAllModulesCode(this.allModulesCode);
+            for (const entry of moduleEntries) {
+                this.AddModuleEntry(entry.moduleID, entry.moduleName);
+            }
+            // todo: either replace or augment the parsing-from-code system above with a parsing-from-webpack-module-cache system (the latter is much more simple/robust)
+        };
+        this.Start = this.ParseModuleData; // convenience alias
+        this.AddModuleEntry = (moduleID, moduleName) => {
+            this.moduleIDs[moduleName] = moduleID;
+            this.moduleNames[moduleID] = moduleName;
+            const thisModuleExports = this.GetModuleExports(moduleID);
+            // replace certain characters with underscores, so the module-entries can show in console auto-complete
+            let moduleName_simple = moduleName.replace(/-/g, "_");
+            StoreValueWithUniqueName(this.moduleExports, moduleName_simple, thisModuleExports);
+            if (typeof thisModuleExports == "string" && thisModuleExports.startsWith("[module exports not found;"))
+                return;
+            // store the module's individual exports on the global "moduleExports_flat" collection
+            for (const [key, value] of Object.entries(thisModuleExports)) {
+                StoreValueWithUniqueName(this.moduleExports_flat, key, value);
+            }
+            //let defaultExport = moduleExports.default || moduleExports;
+            if (thisModuleExports.default != null) {
+                StoreValueWithUniqueName(this.moduleExports_flat, moduleName, thisModuleExports.default);
+            }
+        };
+        this.GetModuleExports = (moduleID, allowImportNew = false) => {
+            var _a, _b;
+            if (this.webpackData.moduleCache[moduleID] == null && allowImportNew) {
+                // haven't checked if this actually works yet (anyway it's disabled by default)
+                this.webpackData.requireFunc(moduleID);
+            }
+            return (_b = (_a = this.webpackData.moduleCache[moduleID]) === null || _a === void 0 ? void 0 : _a.exports) !== null && _b !== void 0 ? _b : "[module exports not found; this module has probably not yet been imported/run]";
+        };
+        this.GetIDForModule = (name) => {
+            this.ParseModuleData();
+            return this.moduleIDs[name];
+        };
+        // wrr functions
+        this.Require = (name, opts) => {
+            if (name === undefined) {
+                return void this.ParseModuleData();
+            }
+            let id = this.GetIDForModule(name);
+            if (id == null)
+                return "[could not find the given module]";
+            return this.GetModuleExports(id, opts === null || opts === void 0 ? void 0 : opts.allowImportNew);
+        };
+        WRR.main = (_a = WRR.main) !== null && _a !== void 0 ? _a : this;
+    }
+}
+export const wrr = new WRR();
+var g = typeof window != "undefined" ? window : global;
+g.wrr = wrr;
+if (typeof __webpack_require__ != "undefined") {
+    WRR.main.AddWebpackData({
+        __webpack_require__,
+        __webpack_modules__: typeof __webpack_modules__ != "undefined" ? __webpack_modules__ : null,
+        __webpack_module_cache__: typeof __webpack_module_cache__ != "undefined" ? __webpack_module_cache__ : null,
+    });
+}

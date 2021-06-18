@@ -2,11 +2,11 @@
 	"name": "webpack-runtime-require",
 	"version": "0.3.3",
 	"description": "Exposes a way to require module exports at runtime. (eg. in browser consoles)",
+	"type": "module",
 	"main": "Dist/Main.js",
-	"typings": "Dist/Main.d.ts",
+	"types": "Dist/Main.d.ts",
 	"scripts": {
-		"dev": "webpack --config webpack.config.js --progress --watch",
-		"dist": "babel src/index.jsx -u -o Dist/index.js --stage 1 --presets react"
+		"dev": "tsc --watch"
 	},
 	"repository": {
 		"type": "git",
@@ -26,14 +26,6 @@
 	},
 	"homepage": "https://github.com/Venryx/webpack-runtime-require",
 	"devDependencies": {
-		"@babel/core": "^7.14.5",
-		"@babel/preset-env": "^7.14.5",
-		"@types/webpack": "^5.28.0",
-		"babel-cli": "^6.4.5",
-		"babel-loader": "^8.2.2",
-		"ts-loader": "^9.2.3",
-		"typescript": "^4.3.2",
-		"webpack": "^5.38.1",
-		"webpack-cli": "^4.7.2"
+		"typescript": "^4.3.2"
 	}
 }
