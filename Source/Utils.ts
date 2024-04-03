@@ -1,9 +1,64 @@
-export function GetModuleNameFromPath(path: string) {
-	let parts = path.split("/");
-	// last part might be empty, so find last part with content (path might end with /, if it's a folder-require -- which resolves to folder/index)
-	let lastPartWithContent = parts[parts.length - 1] || parts[parts.length - 2];
-	return lastPartWithContent.replace(/\.[^.]+/, ""); // remove extension
+export class ModuleInfo {
+	constructor(data?: Partial<ModuleInfo>) {
+		Object.assign(this, data);
+	}
+	id: number | string;
+	name_short: string;
+	name_long: string;
+	exports: any;
 }
+
+// Real example paths, on webpack 5.90.3 (with `optimization.moduleIds=named` and `output.pathinfo=true`): (also shows the module name that this function should return)
+// ./Resources/SVGs/arrow-up.svg                                      -> Resources_SVGs_arrow_up_svg
+// ../../node_modules/lodash/_cloneDataView.js                        -> lodash_cloneDataView_js
+// ../../node_modules/tiny-invariant/dist/tiny-invariant.esm.js       -> tiny_invariant_esm_js
+// ../../node_modules/ajv-keywords/dist/index.js                      -> ajv_keywords
+// ../../node_modules/ajv-keywords/dist/keywords/deepProperties.js    -> ajv_keywords_keywords_deepProperties_js
+export function GetModuleNameFromPath(path: string, asSingleSegmentName = false) {
+	let segments = path.split("/");
+	let segmentsForName = segments.filter(a=>{
+		const aLower = a.toLowerCase();
+		// exclude folder-related parts (path might end with /, if it's a folder-require -- which resolves to folder/index)
+		if (a == "" || a == "." || a == "..") return false;
+		// exclude "dist", "esm", and "cjs" folders (meaningless for naming purposes)
+		if (aLower == "dist" || aLower == "esm" || aLower == "cjs") return false;
+		// exclude "index" files (meaningless for naming purposes)
+		if (aLower.startsWith("index.")) return false;
+		return true;
+	});
+	// simplify each segment to only characters that are valid for variable-names (so they can show in the autocomplete dropdown)
+	const simplifySegmentForVarName = (a: string)=>a.replace(/[^a-zA-Z0-9_]/g, "_");
+
+	// if only want the last segment, return it now
+	if (asSingleSegmentName) {
+		segmentsForName = segmentsForName.map(a=>simplifySegmentForVarName(a));
+		return segmentsForName[segmentsForName.length - 1];
+	}
+	// else: we'll do additional processing and turn it into a path-like long string
+
+	// exclude node_modules part (and parts before that)
+	let nodeModulesIndex = segmentsForName.indexOf("node_modules");
+	if (nodeModulesIndex != -1) segmentsForName = segmentsForName.slice(nodeModulesIndex + 1);
+
+	segmentsForName = segmentsForName.map((part, i)=>{
+		let result = part;
+		// for last part, remove extension
+		if (i == segmentsForName.length - 1) result = result.replace(/\.[^.]+$/, "");
+		// for all parts, do the processing below
+		result =
+			// do general simplification-for-var-name
+			simplifySegmentForVarName(result)
+			// remove prefix/postfix underscores (since these would end up as double-underscores when parts are joined)
+			.replace(/^_+/, "").replace(/_+$/, "")
+			// remove double underscores
+			.replace(/_+/g, "_");
+		return result;
+	});
+
+	// always end the name with "__" (to make targeting a specific filename easy, eg. `Todo__` to target `Todo.tsx` but not `Todo/[various other files].tsx`)
+	return segmentsForName.join("_") + "__";
+}
+
 export function GetModuleNameFromVarName(varName: string) {
 	// these are examples of before and after the below transformation code:
 	// 		_reactReduxFirebase => react-redux-firebase
@@ -24,8 +79,32 @@ export function GetModuleNameFromVarName(varName: string) {
 	return moduleName;
 }
 
-export function ParseModuleEntriesFromAllModulesText(allModulesText: string) {
-	const entries = [] as {moduleID: string | number, moduleName: string}[];
+export function ParseModuleInfoFromModuleFuncs(moduleFuncs: {[key: string]: Function}, allModulesText: string): ModuleInfo[] {
+	// The easiest way to get module-names is if the module-paths are simply provided. (enabled using optimization.moduleIds=named)
+	// So try this route first. (this way also works even with minification enabled)
+	// ----------
+
+	const moduleFuncEntries = Object.entries(moduleFuncs);
+	const moduleIDs = moduleFuncEntries.map(([moduleID, moduleFunc])=>moduleID);
+	const moduleFullNames = moduleFuncEntries.map(([moduleID, moduleFunc])=>moduleFunc.name);
+	const modulePaths_fromIDs = moduleIDs[0]?.includes("/") || moduleIDs[1]?.includes("/") ? moduleIDs : null;
+	const modulePaths_fromFullNames = moduleFullNames[0]?.includes("/") || moduleFullNames[1]?.includes("/") ? moduleFullNames : null;
+	const modulePaths = modulePaths_fromIDs ?? modulePaths_fromFullNames;
+	if (modulePaths) {
+		return moduleFuncEntries.map((entry, index)=>{
+			const modulePath = modulePaths[index];
+			return new ModuleInfo({
+				id: entry[0],
+				name_long: GetModuleNameFromPath(modulePath, false),
+				name_short: GetModuleNameFromPath(modulePath, true),
+			});
+		});
+	}
+
+	// else, fall back to trying to extract the module-names using regular-expressions on the code (eg. the import lines)
+	// ----------
+
+	const entries = [] as ModuleInfo[];
 
 	// these are examples of before and after webpack's transformation: (based on which the 1st regex below finds path-comments)
 	// 		require("react-redux-firebase") => var _reactReduxFirebase = __webpack_require__(/*! react-redux-firebase */ 100);
@@ -42,20 +121,22 @@ export function ParseModuleEntriesFromAllModulesText(allModulesText: string) {
 	if (allModulesText.match(requiresWithPathCommentsRegex)) {
 		for (let match; match = requiresWithPathCommentsRegex.exec(allModulesText);) {
 			let [_, path, idStr] = match;
-			entries.push({
-				moduleID: idStr,
-				moduleName: GetModuleNameFromPath(path),
-			});
+			entries.push(new ModuleInfo({
+				id: idStr,
+				name_long: GetModuleNameFromPath(path, false),
+				name_short: GetModuleNameFromPath(path, true),
+			}));
 		}
 	}
 	// if requires themselves are by-path, use that (set using [config.mode: "development"] or [config.optimization.namedModules: true])
 	if (allModulesText.match(requiresWithPathsRegex)) {
 		for (let match; match = requiresWithPathsRegex.exec(allModulesText);) {
 			let [_, path] = match;
-			entries.push({
-				moduleID: path,
-				moduleName: GetModuleNameFromPath(path),
-			});
+			entries.push(new ModuleInfo({
+				id: path,
+				name_long: GetModuleNameFromPath(path, false),
+				name_short: GetModuleNameFromPath(path, true),
+			}));
 		}
 	}
 	// else, infer it from the var-names of the imports
@@ -66,10 +147,11 @@ export function ParseModuleEntriesFromAllModulesText(allModulesText: string) {
 		let regex = /var ([a-zA-Z_]+) = __webpack_require__\(([0-9]+)\)/g;
 		for (let match; match = regex.exec(allModulesText);) {
 			let [_, varName, idStr] = match;
-			entries.push({
-				moduleID: parseInt(idStr),
-				moduleName: GetModuleNameFromVarName(varName),
-			});
+			entries.push(new ModuleInfo({
+				id: parseInt(idStr),
+				name_long: GetModuleNameFromVarName(varName),
+				name_short: GetModuleNameFromVarName(varName),
+			}));
 		}
 	}
 

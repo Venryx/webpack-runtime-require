@@ -4,7 +4,6 @@
 		//"baseUrl": "Source", // keep commented; this way, we remember to always use relative paths (needed for in-node-modules typescript type-resolving)
 		// general
 		//"sourceMap": true,
-		"watch": true,
 		"moduleResolution": "node",
 		// compiler options
 		"target": "es2017",

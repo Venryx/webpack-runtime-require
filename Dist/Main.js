@@ -1,4 +1,4 @@
-import { GetModuleNameFromPath, GetModuleNameFromVarName, ParseModuleEntriesFromAllModulesText as ParseModuleEntriesFromAllModulesCode, StoreValueWithUniqueName } from "./Utils.js";
+import { GetModuleNameFromPath, GetModuleNameFromVarName, ParseModuleInfoFromModuleFuncs as ParseModuleInfoFromModuleFuncs, StoreValueWithUniqueName } from "./Utils.js";
 export { GetModuleNameFromPath, GetModuleNameFromVarName };
 // convenience/stable-api function
 export function Init(opts) {
@@ -7,7 +7,6 @@ export function Init(opts) {
 export class WRR {
     constructor() {
         var _a;
-        // wrr data-structures
         // func for supplying webpack-data; preferably user will call this function directly (as seen in readme), to ensure the special variables are accessible
         this.AddWebpackData = (data) => {
             var _a, _b;
@@ -26,39 +25,44 @@ export class WRR {
                 console.warn("webpackData.modules appears to have 2 or fewer modules. Did you call Init(...) from the correct chunk?")
             }*/
         };
-        this.moduleIDs = {};
-        this.moduleNames = {};
+        this.modules = [];
+        this.modules_byID = {};
+        this.modules_byLongName = {};
+        this.modules_byShortName = {};
+        /** module.name_long -> module.exports */
         this.moduleExports = {};
+        /** module.name_short -> module.exports */
+        this.moduleExports_byShortName = {};
+        /** The result of combining `module.exports` of every module into one collection. [key clashes have "_" appended] */
         this.moduleExports_flat = {};
         this.ParseModuleData = (forceRefresh = false) => {
             if (this.allModulesCode != null && !forceRefresh)
                 return;
             //let moduleWrapperFuncs = Object.keys(this.webpackData.modules).map(moduleID=>this.webpackData.modules[moduleID]);
-            let moduleWrapperFuncs = Object.values(this.webpackData.modules);
-            this.allModulesCode = moduleWrapperFuncs.map(a => a.toString()).join("\n\n\n").replace(/\\"/g, `"`);
-            const moduleEntries = ParseModuleEntriesFromAllModulesCode(this.allModulesCode);
-            for (const entry of moduleEntries) {
-                this.AddModuleEntry(entry.moduleID, entry.moduleName);
+            let moduleFuncs_flat = Object.values(this.webpackData.modules);
+            this.allModulesCode = moduleFuncs_flat.map(a => a.toString()).join("\n\n\n").replace(/\\"/g, `"`);
+            const modules = ParseModuleInfoFromModuleFuncs(this.webpackData.modules, this.allModulesCode);
+            for (const module of modules) {
+                module.exports = this.GetModuleExports(module.id);
+                this.AddModuleEntry(module);
             }
-            // todo: either replace or augment the parsing-from-code system above with a parsing-from-webpack-module-cache system (the latter is much more simple/robust)
         };
-        this.Start = this.ParseModuleData; // convenience alias
-        this.AddModuleEntry = (moduleID, moduleName) => {
-            this.moduleIDs[moduleName] = moduleID;
-            this.moduleNames[moduleID] = moduleName;
-            const thisModuleExports = this.GetModuleExports(moduleID);
-            // replace certain characters with underscores, so the module-entries can show in console auto-complete
-            let moduleName_simple = moduleName.replace(/-/g, "_");
-            StoreValueWithUniqueName(this.moduleExports, moduleName_simple, thisModuleExports);
-            if (typeof thisModuleExports == "string" && thisModuleExports.startsWith("[module exports not found;"))
+        this.AddModuleEntry = (module) => {
+            this.modules.push(module);
+            this.modules_byID[module.id] = module;
+            this.modules_byLongName[module.name_long] = module;
+            this.modules_byShortName[module.name_short] = module;
+            StoreValueWithUniqueName(this.moduleExports, module.name_long, module.exports);
+            StoreValueWithUniqueName(this.moduleExports_byShortName, module.name_short, module.exports);
+            if (typeof module.exports == "string" && module.exports.startsWith("[module exports not found;"))
                 return;
             // store the module's individual exports on the global "moduleExports_flat" collection
-            for (const [key, value] of Object.entries(thisModuleExports)) {
+            for (const [key, value] of Object.entries(module.exports)) {
                 StoreValueWithUniqueName(this.moduleExports_flat, key, value);
             }
             //let defaultExport = moduleExports.default || moduleExports;
-            if (thisModuleExports.default != null) {
-                StoreValueWithUniqueName(this.moduleExports_flat, moduleName, thisModuleExports.default);
+            if (module.exports.default != null) {
+                StoreValueWithUniqueName(this.moduleExports_flat, module.name_short, module.exports.default);
             }
         };
         this.GetModuleExports = (moduleID, allowImportNew = false) => {
@@ -70,25 +74,35 @@ export class WRR {
             return (_b = (_a = this.webpackData.moduleCache[moduleID]) === null || _a === void 0 ? void 0 : _a.exports) !== null && _b !== void 0 ? _b : "[module exports not found; this module has probably not yet been imported/run]";
         };
         this.GetIDForModule = (name) => {
+            var _a, _b;
             this.ParseModuleData();
-            return this.moduleIDs[name];
+            return (_b = ((_a = this.modules_byLongName[name]) !== null && _a !== void 0 ? _a : this.modules_byShortName[name])) === null || _b === void 0 ? void 0 : _b.id;
         };
-        // wrr functions
-        this.Require = (name, opts) => {
-            if (name === undefined) {
-                return void this.ParseModuleData();
-            }
+        // WRR high-level functions
+        // ==========
+        this.Start = this.ParseModuleData; // convenience alias
+        this.Module = (name, opts) => {
+            this.ParseModuleData();
+            if (name === undefined)
+                return;
             let id = this.GetIDForModule(name);
             if (id == null)
                 return "[could not find the given module]";
             return this.GetModuleExports(id, opts === null || opts === void 0 ? void 0 : opts.allowImportNew);
         };
+        this.Require = this.Module; // legacy alias
+        this.Export = (name) => {
+            this.ParseModuleData();
+            if (name === undefined)
+                return;
+            return this.moduleExports[name];
+        };
         WRR.main = (_a = WRR.main) !== null && _a !== void 0 ? _a : this;
     }
 }
 export const wrr = new WRR();
-var g = typeof window != "undefined" ? window : global;
-g.wrr = wrr;
+// make library's data-store singleton accessible on window/global
+globalThis.wrr = wrr;
 if (typeof __webpack_require__ != "undefined") {
     WRR.main.AddWebpackData({
         __webpack_require__,
