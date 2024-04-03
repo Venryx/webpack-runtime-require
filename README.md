@@ -58,11 +58,15 @@ npm install --save webpack-runtime-require
 * 3\) Use the `window.wrr` object in dev-tools (or the `wrr` export in compile-time code) to access module contents.
 	* 3.A\) A dev-tools example, of importing based on module/file name:
 		```
+		// for libraries, you can usually just use the library name
+		// (replacing any non-variable-safe characters with underscores)
+		// (in some cases, the name's more complicated; can inspect first, as seen in "Additional usage" section)
 		let React = wrr.Module("react");
 		console.log("Retrieved Component class from react:", React.Component);
 
-		// if path was "./Path/To/MyComponent", specify just the file-name
-		let MyComponent = wrr.Module("MyComponent");
+		// if path was "./Path/To/MyComponent.js", specify just the file-name
+		// (replacing any non-variable-safe characters with underscores)
+		let MyComponent = wrr.Module("MyComponent_js");
 		console.log("Retrieved MyComponent:", MyComponent);
 
 		// if you want to import by path instead of file-name, see here:
